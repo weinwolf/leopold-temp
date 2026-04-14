@@ -2,13 +2,13 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Wein Wolf - Kooperationsvereinbarung v5.7</title>
+    <title>Wein Wolf - Kooperationsvereinbarung v6.4</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --ww-green-dark: #1B4D3E;
             --ww-green-light: #F2F6F3;
-            --ww-orange: #E45959; /* Exakter Ton aus dem Wein Wolf Gruppe Logo */
+            --ww-orange: #E45959; 
             --ww-border: #A3B5AD;
             --ww-error: #b32d2d;
         }
@@ -21,7 +21,6 @@
         .header h1 { margin: 10px 0 5px 0; font-size: 26px; text-transform: uppercase; letter-spacing: 3px; }
         .header .sub-brand { font-size: 13px; letter-spacing: 4px; color: var(--ww-orange); text-transform: uppercase; }
         
-        /* Layout Partner-Block */
         .partner-section { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px; }
         .partner-box { background: rgba(255, 255, 255, 0.5); padding: 15px; border-left: 4px solid var(--ww-orange); }
         .partner-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--ww-orange); font-weight: 700; margin-bottom: 8px; }
@@ -29,7 +28,6 @@
 
         h3 { background: var(--ww-green-dark); color: #fff; padding: 10px 15px; text-transform: uppercase; font-size: 13px; letter-spacing: 1.5px; margin-top: 40px; border-bottom: 4px solid var(--ww-orange); }
         
-        /* Visual Selection Grids */
         .visual-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 12px; margin: 20px 0; text-align: center; }
         .bottle-placeholder { 
             border: 1px solid var(--ww-border); height: 85px; background: transparent; 
@@ -40,17 +38,27 @@
         .product-label { font-size: 8px; font-weight: 600; min-height: 24px; line-height: 1.1; text-transform: uppercase; }
         input[type="checkbox"] { cursor: pointer; accent-color: var(--ww-orange); }
 
-        /* Tables & Math */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; }
         th { font-family: 'Montserrat', sans-serif; background-color: var(--ww-green-dark); color: #fff; border: 1px solid var(--ww-green-dark); padding: 10px; font-size: 10px; text-transform: uppercase; text-align: left; }
         td { border: 1px solid var(--ww-border); padding: 8px; font-size: 12px; }
         tfoot td { background-color: #f9f9f9; font-weight: 700; border-top: 2px solid var(--ww-green-dark); }
 
-        input[type="number"], input[type="text"], input[type="date"], select, textarea { 
+        input[type="number"], input[type="text"], input[type="date"], input[type="email"], select, textarea { 
             width: 95%; border: none; background: transparent; font-size: 13px; outline: none; color: var(--ww-green-dark); 
+            transition: background-color 0.3s, border-color 0.3s;
         }
         input::placeholder, textarea::placeholder { color: #bbb; font-style: italic; opacity: 0.6; }
-        .input-error { background-color: rgba(179, 45, 45, 0.1) !important; color: var(--ww-error) !important; border-bottom: 2px solid var(--ww-error) !important; }
+        
+        /* Mandatory Field Error Styling */
+        .input-error { 
+            background-color: rgba(179, 45, 45, 0.1) !important; 
+            color: var(--ww-error) !important; 
+            border-bottom: 2px solid var(--ww-error) !important; 
+        }
+        .wrapper-error {
+            border: 2px solid var(--ww-error) !important;
+            background-color: rgba(179, 45, 45, 0.1) !important;
+        }
         
         .total-cell { font-weight: 700; color: var(--ww-orange); text-align: right; }
         .projection-cell { font-weight: 600; color: var(--ww-green-dark); text-align: right; background: rgba(228, 89, 89, 0.05); }
@@ -66,8 +74,7 @@
         .tooltip { visibility: hidden; width: 220px; background: var(--ww-green-dark); color: #fff; border-radius: 4px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; font-size: 10px; border-left: 3px solid var(--ww-orange); text-align: left; }
         .info-container:hover .tooltip { visibility: visible; opacity: 1; }
 
-        /* Signature Modal Styles */
-        .sig-wrapper { border: 1px solid var(--ww-orange); background: #fff; width: 100%; height: 120px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .sig-wrapper { border: 1px solid var(--ww-orange); background: #fff; width: 100%; height: 120px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: all 0.3s; }
         .sig-wrapper span { font-size: 10px; color: var(--ww-border); text-transform: uppercase; font-weight: bold; }
         .sig-preview-canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
 
@@ -95,15 +102,18 @@
             cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 4px; z-index: 1000;
         }
 
+        .action-container { text-align: center; margin-top: 80px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        
         .reset-all-btn {
-            background: transparent; color: var(--ww-error); border: 2px solid var(--ww-error); padding: 10px 20px; 
+            background: transparent; border: 2px solid var(--ww-error); padding: 10px 20px; color: var(--ww-error);
             font-family: 'Montserrat', sans-serif; font-size: 10px; text-transform: uppercase; font-weight: 700; 
             cursor: pointer; border-radius: 4px; transition: all 0.3s; letter-spacing: 1px;
         }
+        .reset-all-btn:hover { background: rgba(179, 45, 45, 0.1); }
 
         @media print { 
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; margin: 0; }
-            .clear-btn, .print-btn, .info-container, .print-hide, .reset-all-btn { display: none !important; }
+            .clear-btn, .print-btn, .info-container, .print-hide, .action-container { display: none !important; }
             input, select, textarea { border: none !important; outline: none !important; background: transparent !important; }
             .line-input { border-bottom: 1px solid #000 !important; }
             .custom-textarea { border: 1px solid var(--ww-border) !important; }
@@ -113,15 +123,15 @@
 </head>
 <body>
 
-    <button class="print-btn print-hide" onclick="window.print()">Dokument Drucken / PDF Erstellen</button>
+    <button type="button" class="print-btn print-hide" onclick="triggerPrint()">Dokument Drucken / PDF Erstellen</button>
 
     <div id="sig-modal" class="print-hide">
         <div class="modal-content">
             <h2 style="font-family:Montserrat; color:var(--ww-green-dark); margin-top:0;">Unterschrift leisten</h2>
             <canvas id="modal-canvas"></canvas>
             <div class="modal-btns">
-                <button class="btn-action btn-clear" onclick="clearModalCanvas()">Löschen</button>
-                <button class="btn-action btn-save" onclick="saveSignature()">In Vertrag übernehmen</button>
+                <button type="button" class="btn-action btn-clear" onclick="clearModalCanvas()">Löschen</button>
+                <button type="button" class="btn-action btn-save" onclick="saveSignature()">In Vertrag übernehmen</button>
             </div>
         </div>
     </div>
@@ -131,7 +141,7 @@
             <img src="https://www.weinwolf.de/bundles/weinwolftheme/storefront/img/logo_header.svg?17144500985059" alt="WEIN WOLF">
         </div>
         <h1>Kooperationsvereinbarung</h1>
-        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v5.7</div>
+        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v6.4</div>
     </div>
 
     <div class="partner-section">
@@ -146,7 +156,9 @@
         <div class="partner-box">
             <div class="partner-label">Vertragspartner 2 (Partner)</div>
             <div class="partner-info">
-                <input type="text" id="partner-name" class="line-input" placeholder="Name der Firma / Inhaber">
+                <input type="text" id="partner-name" class="line-input" placeholder="Name der Firma / Inhaber" oninput="this.classList.remove('input-error')">
+                <input type="email" id="partner-email" class="line-input print-hide" placeholder="E-Mail Adresse für interne Ablage" style="margin-top: 10px;" oninput="this.classList.remove('input-error')">
+                <input type="text" id="partner-kundennummer" class="line-input" placeholder="Kundennummer" style="margin-top: 10px;" oninput="this.classList.remove('input-error')">
                 <div style="font-size: 10px; color: #888; margin-top: 5px;">(nachfolgend "Partner" genannt)</div>
             </div>
         </div>
@@ -159,8 +171,8 @@
     
     <div class="section">
         <p style="font-size:14px;">
-            Laufzeit: von <input type="date" id="date-start" onchange="validateDuration()" style="width:140px; border-bottom:2px solid var(--ww-orange);"> 
-            bis <input type="date" id="date-end" onchange="validateDuration()" style="width:140px; border-bottom:2px solid var(--ww-orange);">
+            Laufzeit: von <input type="date" id="date-start" onchange="validateDuration(); this.classList.remove('input-error')" style="width:140px; border-bottom:2px solid var(--ww-orange);"> 
+            bis <input type="date" id="date-end" onchange="validateDuration(); this.classList.remove('input-error')" style="width:140px; border-bottom:2px solid var(--ww-orange);">
             <span id="duration-display" class="duration-badge hidden">0 Monate</span>
         </p>
     </div>
@@ -223,13 +235,21 @@
     <div class="legal-block">
         <strong>§1</strong> Der Partner wird die vereinbarten Produkte im Vertragszeitraum und bis zur vereinbarten Zielmenge ausschenken, auf der Getränkekarte listen, sowie in der Bar sichtbar präsentieren.<br><br>
         <strong>§2</strong> Die Abrechnung der Rückvergütungen erfolgt jährlich nach Erfüllung (mind. 80 % der Gesamt-Zielmenge) der Zielmengen gegen Rechnung und Bezugsnachweis über den Fachgroßhändler. Es werden ausschließlich nur von VOLUME SPIRITS / Wein Wolf GmbH distribuierte Produkte vergütet.<br><br>
-        <strong>§3</strong> Sollten die Zielmenge nicht erreicht werden verlängert sich die Vereinbarung einmalig um weitere 12 Monate.<br><br>
-        <strong>Bezugsweg:</strong> <input type="text" id="distributor-name" style="width: 65%; border-bottom: 2px solid var(--ww-orange);" placeholder="Fachgroßhändler inkl. Kundennummer">
+        <strong>§3</strong> Sollte die Zielmenge nicht erreicht werden verlängert sich die Vereinbarung einmalig um weitere 12 Monate.<br><br>
+        
+        <div style="display: flex; align-items: center; margin-top: 15px;">
+            <strong style="margin-right: 10px;">Bezugsweg:</strong> 
+            <input type="text" id="distributor-name" style="width: 45%; border-bottom: 2px solid var(--ww-orange);" placeholder="Fachgroßhändler inkl. Kundennummer" oninput="this.classList.remove('input-error')">
+            <span class="print-hide" style="margin-left: 20px; display: inline-flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="direct-purchase" onchange="toggleDistributor()">
+                <label for="direct-purchase" style="cursor: pointer; font-weight: 600; font-size: 13px; color: var(--ww-green-dark);">Direktbezug Wein Wolf</label>
+            </span>
+        </div>
     </div>
 
     <div class="footer-signatures">
         <div class="sig-container">
-            <div style="height: 120px;"><input type="text" id="sig-location-date" style="border-bottom: 2px solid var(--ww-orange); margin-top: 80px; width:100%;" placeholder="Ort / Datum"></div>
+            <div style="height: 120px;"><input type="text" id="sig-location-date" style="border-bottom: 2px solid var(--ww-orange); margin-top: 80px; width:100%;" placeholder="Ort / Datum" oninput="this.classList.remove('input-error')"></div>
             <div class="sig-box">Standort & Datum</div>
         </div>
         <div class="sig-container">
@@ -248,8 +268,8 @@
         </div>
     </div>
 
-    <div class="print-hide" style="text-align: center; margin-top: 80px; margin-bottom: 20px;">
-        <button class="reset-all-btn" onclick="hardReset()">⚠️ Formular Zurücksetzen</button>
+    <div class="action-container print-hide">
+        <button type="button" class="reset-all-btn" onclick="hardReset()">⚠️ Formular Zurücksetzen</button>
     </div>
 
     <script>
@@ -393,7 +413,9 @@
             document.getElementById('subtotal-rv-pa').innerText = subPa.toFixed(2) + " €";
             document.getElementById('subtotal-rv-dur').innerText = subDur.toFixed(2) + " €";
 
-            for (let i = 0; i < 7; i++) subWkz += parseNum(document.getElementById(`wkz-val-${i}`).value);
+            for (let i = 0; i < 8; i++) {
+                subWkz += parseNum(document.getElementById(`wkz-val-${i}`).value);
+            }
             document.getElementById('subtotal-wkz').innerText = subWkz.toFixed(2) + " €";
 
             const grandTotal = subDur + subWkz;
@@ -414,6 +436,75 @@
                 tooltip.innerHTML = `<strong>Ziel:</strong> ${data.goal}${data.note ? '<br><span style="color:var(--ww-orange)">' + data.note + '</span>' : ''}`;
             }
             updateTotals();
+        }
+
+        // --- DISTRIBUTOR TOGGLE ---
+        function toggleDistributor() {
+            const distInput = document.getElementById('distributor-name');
+            const directCheck = document.getElementById('direct-purchase');
+            if (directCheck.checked) {
+                distInput.dataset.savedValue = distInput.value; 
+                distInput.value = 'DIREKTBEZUG WEIN WOLF';
+                distInput.style.pointerEvents = 'none';
+                distInput.style.opacity = '0.7';
+                distInput.classList.remove('input-error');
+            } else {
+                distInput.value = (distInput.dataset.savedValue && distInput.dataset.savedValue !== 'DIREKTBEZUG WEIN WOLF') ? distInput.dataset.savedValue : '';
+                distInput.style.pointerEvents = 'auto';
+                distInput.style.opacity = '1';
+            }
+        }
+
+        // --- PRE-FLIGHT CHECK (THE GATEKEEPER) ---
+        function isCanvasBlank(canvas) {
+            if (canvas.width === 0 || canvas.height === 0) return true;
+            const ctx = canvas.getContext('2d');
+            const pixelBuffer = new Uint32Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer);
+            return !pixelBuffer.some(color => color !== 0);
+        }
+
+        function triggerPrint() {
+            const requiredFields = ['partner-name', 'partner-email', 'partner-kundennummer', 'date-start', 'date-end', 'sig-location-date'];
+            let allGood = true;
+
+            // Text Fields validation
+            requiredFields.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) {
+                    el.classList.add('input-error');
+                    allGood = false;
+                } else {
+                    el.classList.remove('input-error');
+                }
+            });
+
+            // Distributor or Direct Purchase validation
+            const distInput = document.getElementById('distributor-name');
+            const directCheck = document.getElementById('direct-purchase');
+            if (!directCheck.checked && !distInput.value.trim()) {
+                distInput.classList.add('input-error');
+                allGood = false;
+            } else {
+                distInput.classList.remove('input-error');
+            }
+
+            // Signatures validation
+            ['sig-ww', 'sig-kunde'].forEach(id => {
+                const canvas = document.getElementById(id);
+                const wrapper = document.getElementById('wrap-' + id);
+                if (isCanvasBlank(canvas)) {
+                    wrapper.classList.add('wrapper-error');
+                    allGood = false;
+                } else {
+                    wrapper.classList.remove('wrapper-error');
+                }
+            });
+
+            if (allGood) {
+                window.print();
+            } else {
+                alert("Sicherheitsprotokoll: Der Druckvorgang wurde blockiert. Bitte füllen Sie alle rot markierten Pflichtfelder (inkl. Bezugsweg) aus und leisten Sie beide Unterschriften.");
+            }
         }
 
         // --- SIGNATURE MODAL ---
@@ -443,6 +534,7 @@
             const prev = document.getElementById(currentSigTarget);
             prev.width = prev.offsetWidth; prev.height = prev.offsetHeight;
             prev.getContext('2d').drawImage(mCanvas, 0, 0, prev.width, prev.height);
+            document.getElementById('wrap-' + currentSigTarget).classList.remove('wrapper-error');
             modal.style.display = 'none'; clearModalCanvas();
         }
 
@@ -466,9 +558,14 @@
                         if (el.type === 'checkbox') el.checked = saved[el.id]; else el.value = saved[el.id];
                     }
                 });
+                
+                if (document.getElementById('direct-purchase').checked) {
+                    toggleDistributor();
+                }
+
                 validateDuration();
                 rvKPIs.forEach((_, i) => calcRV(i));
-                for (let i = 0; i < 7; i++) { if(document.getElementById(`wkz-select-${i}`).value) updateWKZ(i); }
+                for (let i = 0; i < 8; i++) { if(document.getElementById(`wkz-select-${i}`).value) updateWKZ(i); }
             }
         }
 
@@ -499,7 +596,7 @@
             });
 
             const wkzBody = document.getElementById('wkz-body');
-            for (let i = 0; i < 7; i++) {
+            for (let i = 0; i < 8; i++) {
                 wkzBody.innerHTML += `
                     <tr>
                         <td><select id="wkz-select-${i}" onchange="updateWKZ(${i})"><option value="" disabled selected>Marke...</option>${Object.keys(wkzKPIs).map(k=>`<option value="${k}">${k}</option>`).join('')}</select><div id="wkz-info-cont-${i}" class="info-container hidden"><span class="info-icon">i</span><span class="tooltip" id="wkz-tip-${i}"></span></div></td>
