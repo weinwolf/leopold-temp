@@ -2,13 +2,13 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Wein Wolf - Kooperationsvereinbarung v5.0</title>
+    <title>Wein Wolf - Kooperationsvereinbarung v5.3</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --ww-green-dark: #1B4D3E;
             --ww-green-light: #F2F6F3;
-            --ww-orange: #D47024;
+            --ww-orange: #E45959; /* Exakter Koralle/Rot-Ton aus dem Wein Wolf Gruppe Logo */
             --ww-border: #A3B5AD;
             --ww-error: #b32d2d;
         }
@@ -59,7 +59,7 @@
         .input-error { background-color: rgba(179, 45, 45, 0.1) !important; color: var(--ww-error) !important; border-bottom: 2px solid var(--ww-error) !important; }
         
         .total-cell { font-weight: 700; color: var(--ww-orange); text-align: right; }
-        .projection-cell { font-weight: 600; color: var(--ww-green-dark); text-align: right; background: rgba(212, 112, 36, 0.03); }
+        .projection-cell { font-weight: 600; color: var(--ww-green-dark); text-align: right; background: rgba(228, 89, 89, 0.05); }
         .line-input { border-bottom: 2px solid var(--ww-orange); width: 300px; }
         
         #grand-total-container { 
@@ -83,36 +83,56 @@
         .duration-badge { background: var(--ww-orange); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 11px; margin-left: 10px; font-weight: 700; vertical-align: middle; }
         .hidden { display: none !important; }
         
-        /* Print Button Styles */
+        /* Interactive Buttons */
         .print-btn {
             position: fixed; bottom: 30px; right: 30px; background-color: var(--ww-orange); color: #fff; border: none; padding: 15px 25px;
             font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
             cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 4px; z-index: 1000; transition: background-color 0.3s;
         }
-        .print-btn:hover { background-color: #b55e1c; }
+        .print-btn:hover { background-color: #c94d4d; }
+
+        .reset-all-btn {
+            background: transparent; color: var(--ww-error); border: 2px solid var(--ww-error); padding: 10px 20px; 
+            font-family: 'Montserrat', sans-serif; font-size: 10px; text-transform: uppercase; font-weight: 700; 
+            cursor: pointer; border-radius: 4px; transition: all 0.3s; letter-spacing: 1px;
+        }
+        .reset-all-btn:hover { background: rgba(179, 45, 45, 0.1); }
 
         /* Print Media Query */
         @media print { 
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; margin: 0; }
-            .clear-btn, .print-btn, .info-container { display: none !important; }
+            .clear-btn, .print-btn, .info-container, .print-hide { display: none !important; }
             input, select, textarea { border: none !important; outline: none !important; background: transparent !important; }
             .line-input { border-bottom: 1px solid #000 !important; }
             .custom-textarea { border: 1px solid var(--ww-border) !important; }
+            select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
         }
     </style>
 </head>
 <body>
 
-    <button class="print-btn" onclick="window.print()">Dokument Drucken / Als PDF Speichern</button>
+    <button class="print-btn print-hide" onclick="window.print()">Dokument Drucken / Als PDF Speichern</button>
 
     <div class="header">
-        <div class="logo-area"><img src="logo-wein-wolf.png" alt="WEIN WOLF" onerror="this.style.display='none';"></div>
+        <div class="logo-area">
+            <img src="https://www.weinwolf.de/bundles/weinwolftheme/storefront/img/logo_header.svg?17144500985059" alt="WEIN WOLF" style="max-width:100%; height:auto;" onerror="this.style.display='none';">
+        </div>
         <h1>Kooperationsvereinbarung</h1>
-        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v5.0</div>
+        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v5.3</div>
     </div>
 
-    <div class="section">
-        <p style="font-size:15px; font-weight: 600;">Partner: <input type="text" id="partner-name" class="line-input" placeholder="Name / Firma des Objekts"></p>
+    <div class="section" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
+        <div style="flex: 1; min-width: 300px;">
+            <p style="font-size:15px; font-weight: 600; margin-bottom: 5px;">Hauptvertragspartner (Firma):</p>
+            <input type="text" id="partner-name" class="line-input" style="width: 100%;" placeholder="Firma / Holding / Inhaber">
+        </div>
+        <div style="flex: 2; min-width: 300px;">
+            <p style="font-size:15px; font-weight: 600; margin-bottom: 5px;">Betroffene Outlets:</p>
+            <input type="text" id="partner-outlets" class="line-input" style="width: 100%;" placeholder="Namen der Bars / Standorte (kommagetrennt)">
+        </div>
+    </div>
+    
+    <div class="section" style="margin-top: 20px;">
         <p style="font-size:14px;">
             Laufzeit: von <input type="date" id="date-start" onchange="validateDuration()" style="width:140px; border-bottom:2px solid var(--ww-orange);"> 
             bis <input type="date" id="date-end" onchange="validateDuration()" style="width:140px; border-bottom:2px solid var(--ww-orange);">
@@ -135,7 +155,7 @@
                 <th style="width: 10%;">Einheit</th>
                 <th style="width: 15%;">Vergütung (€)</th>
                 <th style="width: 18%;">Gesamtsumme p.a.</th>
-                <th style="width: 20%; background: rgba(212, 112, 36, 0.1); color: var(--ww-orange);">Wert Laufzeit</th>
+                <th style="width: 20%; background: rgba(228, 89, 89, 0.1); color: var(--ww-orange);">Wert Laufzeit</th>
             </tr>
         </thead>
         <tbody id="rv-body"></tbody>
@@ -143,7 +163,7 @@
             <tr>
                 <td colspan="4" style="text-align:right;">Zwischensummen:</td>
                 <td class="total-cell" id="subtotal-rv-pa">0.00 €</td>
-                <td class="total-cell" id="subtotal-rv-dur" style="background: rgba(212, 112, 36, 0.05);">0.00 €</td>
+                <td class="total-cell" id="subtotal-rv-dur" style="background: rgba(228, 89, 89, 0.05);">0.00 €</td>
             </tr>
         </tfoot>
     </table>
@@ -151,18 +171,23 @@
     <h3>2. Werbekostenzuschuss (WKZ)</h3>
     <table>
         <thead>
-            <tr><th style="width: 35%;">Marke / Paket</th><th style="width: 45%;">Maßnahme</th><th style="width: 20%;">Vergütung (€)</th></tr>
+            <tr>
+                <th style="width: 25%;">Marke / Paket</th>
+                <th style="width: 40%;">Maßnahme</th>
+                <th style="width: 20%;">Abrechnung</th>
+                <th style="width: 15%;">Vergütung (€)</th>
+            </tr>
         </thead>
         <tbody id="wkz-body"></tbody>
         <tfoot>
-            <tr><td colspan="2" style="text-align:right;">Zwischensumme WKZ:</td><td class="total-cell" id="subtotal-wkz">0.00 €</td></tr>
+            <tr><td colspan="3" style="text-align:right;">Zwischensumme WKZ:</td><td class="total-cell" id="subtotal-wkz">0.00 €</td></tr>
         </tfoot>
     </table>
 
     <div id="grand-total-container">
         <div>
             <span style="font-family: 'Montserrat'; text-transform: uppercase; letter-spacing: 2px; font-size: 14px;">Gesamte Investitionssumme:</span>
-            <div id="avg-invest" style="font-size: 11px; color: #a3b5ad; margin-top: 5px; font-weight: normal; letter-spacing: 1px;">Ø Investition: 0.00 € / Einheit</div>
+            <div id="avg-invest" style="font-size: 11px; color: #a3b5ad; margin-top: 5px; font-weight: normal; letter-spacing: 1px;">Ø Investition: 0.00 € / Liter</div>
         </div>
         <span id="grand-total" style="font-size: 28px; font-weight: 700; color: var(--ww-orange);">0.00 €</span>
     </div>
@@ -184,14 +209,18 @@
         <div class="sig-container"><div style="height: 100px;"><input type="text" id="sig-location-date" style="border-bottom: 2px solid var(--ww-orange); margin-top: 40px; width:100%;" placeholder="Ort / Datum"></div><div class="sig-box">Standort & Datum</div></div>
         <div class="sig-container">
             <canvas id="sig-ww" class="sig-canvas" width="300" height="100"></canvas>
-            <span class="clear-btn" style="font-size: 8px; cursor: pointer; background: var(--ww-orange); color: #fff; border: none; padding: 2px 5px; border-radius: 3px; display: block; margin-top: 5px;" onclick="clearCanvas('sig-ww')">Reset</span>
+            <span class="clear-btn print-hide" style="font-size: 8px; cursor: pointer; background: var(--ww-orange); color: #fff; border: none; padding: 2px 5px; border-radius: 3px; display: block; margin-top: 5px;" onclick="clearCanvas('sig-ww')">Reset</span>
             <div class="sig-box">Wein Wolf GmbH</div>
         </div>
         <div class="sig-container">
             <canvas id="sig-kunde" class="sig-canvas" width="300" height="100"></canvas>
-            <span class="clear-btn" style="font-size: 8px; cursor: pointer; background: var(--ww-orange); color: #fff; border: none; padding: 2px 5px; border-radius: 3px; display: block; margin-top: 5px;" onclick="clearCanvas('sig-kunde')">Reset</span>
+            <span class="clear-btn print-hide" style="font-size: 8px; cursor: pointer; background: var(--ww-orange); color: #fff; border: none; padding: 2px 5px; border-radius: 3px; display: block; margin-top: 5px;" onclick="clearCanvas('sig-kunde')">Reset</span>
             <div class="sig-box">Vertragspartner</div>
         </div>
+    </div>
+
+    <div class="print-hide" style="text-align: center; margin-top: 80px; margin-bottom: 20px;">
+        <button class="reset-all-btn" onclick="hardReset()">⚠️ Formular Zurücksetzen</button>
     </div>
 
     <script>
@@ -229,31 +258,32 @@
             { id: "list-17", name: "Angostura Bitter", img: "https://www.weinwolf.de/thumbnail/f0/cc/f6/1717244522/710102_2105_1920x1920.png" }
         ];
 
+        // Datenbestand umgewandelt in die neuen Volumina
         const rvKPIs = [
-            { name: "Zubrowka Biala Vodka", unit: "Liter", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
-            { name: "Zubrowka Czarna Vodka 40%", unit: "Liter", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 150 },
-            { name: "Pampero Blanco & Especial", unit: "Liter", s1_val: 0.50, s1_qty: 100, s2_val: 2.00, s2_qty: 300 },
-            { name: "Buffalo Trace Bourbon", unit: "Liter", s1_val: 2.00, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
-            { name: "Sazerac Rye", unit: "Flaschen", s1_val: 1.50, s1_qty: 50, s2_val: 2.50, s2_qty: 150 },
-            { name: "Martin Millers Gin", unit: "Liter", s1_val: 2.50, s1_qty: 100, s2_val: 5.00, s2_qty: 200 },
-            { name: "Whitley Neill Range", unit: "Flaschen", s1_val: 1.00, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
-            { name: "Disaronno Originale & Velvet", unit: "Liter", s1_val: 1.00, s1_qty: 50, s2_val: 1.50, s2_qty: 200 },
-            { name: "Lunazul Tequila", unit: "Flaschen", s1_val: 1.00, s1_qty: 50, s2_val: 1.20, s2_qty: 100 },
-            { name: "Angostura Rum", unit: "Liter", s1_val: 1.50, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
-            { name: "Myers's Rum", unit: "Liter", s1_val: 1.00, s1_qty: 50 },
-            { name: "Eagle Rare", unit: "Flaschen", s1_val: 2.00, s1_qty: 50 },
-            { name: "Romana Sambuca", unit: "Liter", s1_val: 0.50, s1_qty: 50 },
-            { name: "Benvenuti Limoncello", unit: "Flaschen", s1_val: 0.50, s1_qty: 50 },
-            { name: "Rutte Gin", unit: "Flaschen", s1_val: 0.50, s1_qty: 50 },
-            { name: "Amaro Montenegro", unit: "Flaschen", s1_val: 1.00, s1_qty: 50 },
-            { name: "Select Aperitivo", unit: "Flaschen", s1_val: 1.00, s1_qty: 50 },
-            { name: "Botran Rum", unit: "Flaschen", s1_val: 1.00, s1_qty: 50 },
-            { name: "Tamboo Spiced", unit: "Flaschen", s1_val: 1.00, s1_qty: 50 },
-            { name: "Cucielo Vermouth", unit: "Flaschen", s1_val: 1.00, s1_qty: 50 },
-            { name: "Tia Maria", unit: "Flaschen", s1_val: 1.00, s1_qty: 100 },
-            { name: "Engine Gin", unit: "Flaschen", s1_val: 1.00, s1_qty: 50 },
-            { name: "The Busker", unit: "Flaschen", s1_val: 1.00, s1_qty: 50 },
-            { name: "Corazon Tequila", unit: "Flaschen", s1_val: 1.00, s1_qty: 50 }
+            { name: "Zubrowka Biala Vodka", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
+            { name: "Zubrowka Czarna Vodka 40%", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 150 },
+            { name: "Pampero Blanco & Especial", unit: "1,0l", s1_val: 0.50, s1_qty: 100, s2_val: 2.00, s2_qty: 300 },
+            { name: "Buffalo Trace Bourbon", unit: "1,0l", s1_val: 2.00, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
+            { name: "Sazerac Rye", unit: "0,7l", s1_val: 1.50, s1_qty: 50, s2_val: 2.50, s2_qty: 150 },
+            { name: "Martin Millers Gin", unit: "1,0l", s1_val: 2.50, s1_qty: 100, s2_val: 5.00, s2_qty: 200 },
+            { name: "Whitley Neill Range", unit: "0,7l", s1_val: 1.00, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
+            { name: "Disaronno Originale & Velvet", unit: "1,0l", s1_val: 1.00, s1_qty: 50, s2_val: 1.50, s2_qty: 200 },
+            { name: "Lunazul Tequila", unit: "0,7l", s1_val: 1.00, s1_qty: 50, s2_val: 1.20, s2_qty: 100 },
+            { name: "Angostura Rum", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
+            { name: "Myers's Rum", unit: "1,0l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Eagle Rare", unit: "0,7l", s1_val: 2.00, s1_qty: 50 },
+            { name: "Romana Sambuca", unit: "1,0l", s1_val: 0.50, s1_qty: 50 },
+            { name: "Benvenuti Limoncello", unit: "0,7l", s1_val: 0.50, s1_qty: 50 },
+            { name: "Rutte Gin", unit: "0,7l", s1_val: 0.50, s1_qty: 50 },
+            { name: "Amaro Montenegro", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Select Aperitivo", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Botran Rum", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Tamboo Spiced", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Cucielo Vermouth", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Tia Maria", unit: "0,7l", s1_val: 1.00, s1_qty: 100 },
+            { name: "Engine Gin", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "The Busker", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Corazon Tequila", unit: "0,7l", s1_val: 1.00, s1_qty: 50 }
         ];
 
         const wkzKPIs = {
@@ -326,17 +356,22 @@
         }
 
         function updateTotals() {
-            let subPa = 0, subDur = 0, subWkz = 0, totalProjectedVolume = 0;
+            let subPa = 0, subDur = 0, subWkz = 0, totalProjectedLiters = 0;
             
             rvKPIs.forEach((_, i) => {
                 const qty = parseNum(document.getElementById(`rv-qty-${i}`).value);
                 const paTxt = document.getElementById(`rv-total-pa-${i}`).innerText;
                 const durTxt = document.getElementById(`rv-total-dur-${i}`).innerText;
+                
+                // Liter-Umrechnung für den Durchschnittswert
+                const unitSelect = document.getElementById(`rv-unit-${i}`);
+                const volMultiplier = unitSelect ? parseFloat(unitSelect.value.replace(',', '.')) : 1;
+
                 if (!paTxt.includes("LIMIT")) {
                     subPa += parseNum(paTxt);
                     subDur += parseNum(durTxt);
                     if (qty > 0 && contractMonths > 0) {
-                        totalProjectedVolume += (qty / 12) * contractMonths;
+                        totalProjectedLiters += ((qty * volMultiplier) / 12) * contractMonths;
                     }
                 }
             });
@@ -349,13 +384,12 @@
             const grandTotal = subDur + subWkz;
             document.getElementById('grand-total').innerText = grandTotal.toFixed(2) + " €";
 
-            // Calculate Average Investment
             const avgDisplay = document.getElementById('avg-invest');
-            if (totalProjectedVolume > 0) {
-                const avg = (grandTotal / totalProjectedVolume).toFixed(2);
-                avgDisplay.innerText = `Ø Investition: ${avg} € / Einheit (Basis RV-Menge Laufzeit)`;
+            if (totalProjectedLiters > 0) {
+                const avg = (grandTotal / totalProjectedLiters).toFixed(2);
+                avgDisplay.innerText = `Ø Investition: ${avg} € / Liter (Basis RV-Volumen Laufzeit)`;
             } else {
-                avgDisplay.innerText = `Ø Investition: 0.00 € / Einheit`;
+                avgDisplay.innerText = `Ø Investition: 0.00 € / Liter`;
             }
         }
 
@@ -382,6 +416,14 @@
                 }
             }
             updateTotals();
+        }
+
+        // --- HARD RESET ---
+        function hardReset() {
+            if(confirm("Sicherheitsprotokoll: Möchten Sie wirklich alle Eingaben unwiderruflich löschen?")) {
+                localStorage.removeItem('ww_contract_v5');
+                window.location.reload();
+            }
         }
 
         // --- AUTO SAVE PROTOCOL ---
@@ -433,10 +475,10 @@
 
             const rvBody = document.getElementById('rv-body');
             rvKPIs.forEach((item, i) => {
-                let tt = `<strong>Mindestmenge:</strong> ${item.s1_qty} ${item.unit}<br>`;
+                let tt = `<strong>Mindestmenge:</strong> ${item.s1_qty} Einheit(en)<br>`;
                 if (item.s2_val) {
-                    tt += `Min. RV: ${item.s1_val.toFixed(2)}€ (ab ${item.s1_qty} ${item.unit})<br>`;
-                    tt += `Max. RV: ${item.s2_val.toFixed(2)}€ (ab ${item.s2_qty} ${item.unit})`;
+                    tt += `Min. RV: ${item.s1_val.toFixed(2)}€ (ab ${item.s1_qty} Einheiten)<br>`;
+                    tt += `Max. RV: ${item.s2_val.toFixed(2)}€ (ab ${item.s2_qty} Einheiten)`;
                 } else { 
                     tt += `Fixe RV: ${item.s1_val.toFixed(2)}€`; 
                 }
@@ -445,7 +487,13 @@
                     <tr>
                         <td>${item.name} <div class="info-container"><span class="info-icon">i</span><span class="tooltip">${tt}</span></div></td>
                         <td><input type="number" id="rv-qty-${i}" oninput="calcRV(${i})" placeholder="${item.s1_qty}"></td>
-                        <td>${item.unit}</td>
+                        <td>
+                            <select id="rv-unit-${i}" onchange="updateTotals()" style="width: 100%; border-bottom: 1px solid var(--ww-border);">
+                                <option value="1.0" ${item.unit === '1,0l' ? 'selected' : ''}>1,0l</option>
+                                <option value="0.7" ${item.unit === '0,7l' ? 'selected' : ''}>0,7l</option>
+                                <option value="0.5" ${item.unit === '0,5l' ? 'selected' : ''}>0,5l</option>
+                            </select>
+                        </td>
                         <td><input type="text" id="rv-price-${i}" oninput="calcRV(${i})"></td>
                         <td class="total-cell" id="rv-total-pa-${i}">0.00 €</td>
                         <td class="projection-cell" id="rv-total-dur-${i}">0.00 €</td>
@@ -457,7 +505,7 @@
                 wkzBody.innerHTML += `
                     <tr>
                         <td>
-                            <select id="wkz-select-${i}" onchange="updateWKZ(${i})">
+                            <select id="wkz-select-${i}" onchange="updateWKZ(${i})" style="width: 100%; border-bottom: 1px solid var(--ww-border);">
                                 <option value="" disabled selected>Marke wählen...</option>
                                 ${Object.keys(wkzKPIs).map(k => `<option value="${k}">${k}</option>`).join('')}
                                 <option value="CUSTOM">-- Eigene Eingabe --</option>
@@ -466,6 +514,13 @@
                             <div id="wkz-info-cont-${i}" class="info-container hidden"><span class="info-icon">i</span><span class="tooltip" id="wkz-tip-${i}"></span></div>
                         </td>
                         <td><input type="text" id="wkz-task-${i}" placeholder="Maßnahme..."></td>
+                        <td>
+                            <select id="wkz-billing-${i}" style="width: 100%; border-bottom: 1px solid var(--ww-border);">
+                                <option value="Nach Umsetzung" selected>Nach Umsetzung</option>
+                                <option value="bei Vertragsabschluss">bei Vertragsabschluss</option>
+                                <option value="keine Abrechnung">keine Abrechnung</option>
+                            </select>
+                        </td>
                         <td><input type="text" id="wkz-val-${i}" oninput="updateTotals()" placeholder="0.00"></td>
                     </tr>`;
             }
@@ -476,26 +531,17 @@
                 const pos = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top }; };
                 canvas.addEventListener('mousedown', (e) => { draw = true; ctx.beginPath(); const p = pos(e); ctx.moveTo(p.x, p.y); });
                 canvas.addEventListener('mousemove', (e) => { if(!draw) return; const p = pos(e); ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#1B4D3E'; ctx.lineTo(p.x, p.y); ctx.stroke(); });
-                window.addEventListener('mouseup', () => { draw = false; saveSignatures(); });
+                window.addEventListener('mouseup', () => draw = false);
                 canvas.addEventListener('touchstart', (e) => { draw = true; ctx.beginPath(); const p = pos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
                 canvas.addEventListener('touchmove', (e) => { if(!draw) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, {passive: false});
-                canvas.addEventListener('touchend', () => { draw = false; saveSignatures(); });
             };
             setupSig('sig-ww'); setupSig('sig-kunde');
 
-            // Initialize Storage
             restoreAutoSave();
             attachAutoSave();
         };
         
-        function clearCanvas(id) { 
-            document.getElementById(id).getContext('2d').clearRect(0, 0, 300, 100); 
-            saveSignatures();
-        }
-
-        function saveSignatures() {
-            // Optional: Signatures are deliberately excluded from local storage due to security/device-sharing protocols.
-        }
+        function clearCanvas(id) { document.getElementById(id).getContext('2d').clearRect(0, 0, 300, 100); }
     </script>
 </body>
 </html>
