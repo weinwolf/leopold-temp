@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Wein Wolf - Kooperationsvereinbarung v6.4</title>
+    <title>Wein Wolf - Kooperationsvereinbarung v6.5 (Secured)</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -29,11 +29,7 @@
         h3 { background: var(--ww-green-dark); color: #fff; padding: 10px 15px; text-transform: uppercase; font-size: 13px; letter-spacing: 1.5px; margin-top: 40px; border-bottom: 4px solid var(--ww-orange); }
         
         .visual-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 12px; margin: 20px 0; text-align: center; }
-        .bottle-placeholder { 
-            border: 1px solid var(--ww-border); height: 85px; background: transparent; 
-            display: flex; align-items: center; justify-content: center; font-size: 8px; 
-            color: var(--ww-border); margin-bottom: 6px; overflow: hidden; 
-        }
+        .bottle-placeholder { border: 1px solid var(--ww-border); height: 85px; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--ww-border); margin-bottom: 6px; overflow: hidden; }
         .bottle-placeholder img { max-height: 100%; max-width: 100%; object-fit: contain; mix-blend-mode: multiply; }
         .product-label { font-size: 8px; font-weight: 600; min-height: 24px; line-height: 1.1; text-transform: uppercase; }
         input[type="checkbox"] { cursor: pointer; accent-color: var(--ww-orange); }
@@ -43,31 +39,17 @@
         td { border: 1px solid var(--ww-border); padding: 8px; font-size: 12px; }
         tfoot td { background-color: #f9f9f9; font-weight: 700; border-top: 2px solid var(--ww-green-dark); }
 
-        input[type="number"], input[type="text"], input[type="date"], input[type="email"], select, textarea { 
-            width: 95%; border: none; background: transparent; font-size: 13px; outline: none; color: var(--ww-green-dark); 
-            transition: background-color 0.3s, border-color 0.3s;
-        }
+        input[type="number"], input[type="text"], input[type="date"], input[type="email"], select, textarea { width: 95%; border: none; background: transparent; font-size: 13px; outline: none; color: var(--ww-green-dark); transition: background-color 0.3s, border-color 0.3s; }
         input::placeholder, textarea::placeholder { color: #bbb; font-style: italic; opacity: 0.6; }
         
-        /* Mandatory Field Error Styling */
-        .input-error { 
-            background-color: rgba(179, 45, 45, 0.1) !important; 
-            color: var(--ww-error) !important; 
-            border-bottom: 2px solid var(--ww-error) !important; 
-        }
-        .wrapper-error {
-            border: 2px solid var(--ww-error) !important;
-            background-color: rgba(179, 45, 45, 0.1) !important;
-        }
+        .input-error { background-color: rgba(179, 45, 45, 0.1) !important; color: var(--ww-error) !important; border-bottom: 2px solid var(--ww-error) !important; }
+        .wrapper-error { border: 2px solid var(--ww-error) !important; background-color: rgba(179, 45, 45, 0.1) !important; }
         
         .total-cell { font-weight: 700; color: var(--ww-orange); text-align: right; }
         .projection-cell { font-weight: 600; color: var(--ww-green-dark); text-align: right; background: rgba(228, 89, 89, 0.05); }
         .line-input { border-bottom: 2px solid var(--ww-orange); width: 100%; margin-top: 5px; }
         
-        #grand-total-container { 
-            margin-top: 40px; padding: 25px; background: var(--ww-green-dark); color: #fff; 
-            display: flex; justify-content: space-between; align-items: center; border-left: 10px solid var(--ww-orange);
-        }
+        #grand-total-container { margin-top: 40px; padding: 25px; background: var(--ww-green-dark); color: #fff; display: flex; justify-content: space-between; align-items: center; border-left: 10px solid var(--ww-orange); }
 
         .info-container { display: inline-block; position: relative; margin-left: 5px; cursor: help; }
         .info-icon { color: var(--ww-orange); font-weight: bold; border: 1px solid var(--ww-orange); border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; }
@@ -96,19 +78,9 @@
         .duration-badge { background: var(--ww-orange); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 11px; margin-left: 10px; font-weight: 700; vertical-align: middle; }
         .hidden { display: none !important; }
         
-        .print-btn {
-            position: fixed; bottom: 30px; right: 30px; background-color: var(--ww-orange); color: #fff; border: none; padding: 15px 25px;
-            font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 4px; z-index: 1000;
-        }
-
+        .print-btn { position: fixed; bottom: 30px; right: 30px; background-color: var(--ww-orange); color: #fff; border: none; padding: 15px 25px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 4px; z-index: 1000; }
         .action-container { text-align: center; margin-top: 80px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-        
-        .reset-all-btn {
-            background: transparent; border: 2px solid var(--ww-error); padding: 10px 20px; color: var(--ww-error);
-            font-family: 'Montserrat', sans-serif; font-size: 10px; text-transform: uppercase; font-weight: 700; 
-            cursor: pointer; border-radius: 4px; transition: all 0.3s; letter-spacing: 1px;
-        }
+        .reset-all-btn { background: transparent; border: 2px solid var(--ww-error); padding: 10px 20px; color: var(--ww-error); font-family: 'Montserrat', sans-serif; font-size: 10px; text-transform: uppercase; font-weight: 700; cursor: pointer; border-radius: 4px; transition: all 0.3s; letter-spacing: 1px; }
         .reset-all-btn:hover { background: rgba(179, 45, 45, 0.1); }
 
         @media print { 
@@ -141,7 +113,7 @@
             <img src="https://www.weinwolf.de/bundles/weinwolftheme/storefront/img/logo_header.svg?17144500985059" alt="WEIN WOLF">
         </div>
         <h1>Kooperationsvereinbarung</h1>
-        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v6.4</div>
+        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v6.5</div>
     </div>
 
     <div class="partner-section">
@@ -149,6 +121,7 @@
             <div class="partner-label">Vertragspartner 1</div>
             <div class="partner-info">
                 <strong>Wein Wolf GmbH</strong><br>
+                <input type="text" id="ww-employee-name" class="line-input" placeholder="Name des AD-Mitarbeiters" style="margin-bottom: 10px; margin-top: 5px;" oninput="this.classList.remove('input-error')"><br>
                 Königswinterer Str. 552<br>
                 53227 Bonn
             </div>
@@ -273,7 +246,6 @@
     </div>
 
     <script>
-        // --- COMPLETE DATA HUB ---
         const pouringItems = [
             { id: "pour-0", name: "Zubrowka", img: "https://www.weinwolf.de/thumbnail/e1/26/2b/1742828743/825000_2412_1920x1920.webp" },
             { id: "pour-1", name: "Buffalo Trace", img: "https://www.weinwolf.de/thumbnail/cb/2d/c9/1755504318/860001_2508_1920x1920.webp" },
@@ -348,12 +320,10 @@
         let contractMonths = 0;
         let currentSigTarget = null;
 
-        // --- CORE LOGIC ---
         function validateDuration() {
             const start = new Date(document.getElementById('date-start').value);
             const end = new Date(document.getElementById('date-end').value);
             const display = document.getElementById('duration-display');
-
             if (start && end && end > start) {
                 const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
                 contractMonths = months;
@@ -371,14 +341,11 @@
             const qty = parseNum(qtyInput.value);
             const price = parseNum(priceInput.value);
             const item = rvKPIs[idx];
-
             let limit = item.s1_val;
             if (item.s2_val && qty >= item.s2_qty) limit = item.s2_val;
             priceInput.placeholder = (qty > 0) ? limit.toFixed(2) : "";
-
             const paCell = document.getElementById(`rv-total-pa-${idx}`);
             const durCell = document.getElementById(`rv-total-dur-${idx}`);
-
             if (price > limit) {
                 priceInput.classList.add('input-error');
                 paCell.innerText = "LIMIT!";
@@ -395,29 +362,21 @@
 
         function updateTotals() {
             let subPa = 0, subDur = 0, subWkz = 0, totalProjectedLiters = 0;
-            
             rvKPIs.forEach((_, i) => {
                 const qty = parseNum(document.getElementById(`rv-qty-${i}`).value);
                 const paTxt = document.getElementById(`rv-total-pa-${i}`).innerText;
                 const durTxt = document.getElementById(`rv-total-dur-${i}`).innerText;
                 const volMultiplier = parseFloat(document.getElementById(`rv-unit-${i}`).value) || 1;
-
                 if (!paTxt.includes("LIMIT")) {
                     subPa += parseNum(paTxt);
                     subDur += parseNum(durTxt);
-                    if (qty > 0 && contractMonths > 0) {
-                        totalProjectedLiters += ((qty * volMultiplier) / 12) * contractMonths;
-                    }
+                    if (qty > 0 && contractMonths > 0) totalProjectedLiters += ((qty * volMultiplier) / 12) * contractMonths;
                 }
             });
             document.getElementById('subtotal-rv-pa').innerText = subPa.toFixed(2) + " €";
             document.getElementById('subtotal-rv-dur').innerText = subDur.toFixed(2) + " €";
-
-            for (let i = 0; i < 8; i++) {
-                subWkz += parseNum(document.getElementById(`wkz-val-${i}`).value);
-            }
+            for (let i = 0; i < 8; i++) subWkz += parseNum(document.getElementById(`wkz-val-${i}`).value);
             document.getElementById('subtotal-wkz').innerText = subWkz.toFixed(2) + " €";
-
             const grandTotal = subDur + subWkz;
             document.getElementById('grand-total').innerText = grandTotal.toFixed(2) + " €";
             document.getElementById('avg-invest').innerText = totalProjectedLiters > 0 ? `Ø Investition: ${(grandTotal / totalProjectedLiters).toFixed(2)} € / Liter` : "0.00 € / Liter";
@@ -429,7 +388,7 @@
             const taskInput = document.getElementById(`wkz-task-${idx}`);
             const data = wkzKPIs[sel.value];
             if (data) { 
-                valInput.value = data.val; 
+                valInput.value = data.val;
                 taskInput.value = data.task; 
                 const tooltip = document.getElementById(`wkz-tip-${idx}`);
                 document.getElementById(`wkz-info-cont-${idx}`).classList.remove('hidden');
@@ -438,12 +397,11 @@
             updateTotals();
         }
 
-        // --- DISTRIBUTOR TOGGLE ---
         function toggleDistributor() {
             const distInput = document.getElementById('distributor-name');
             const directCheck = document.getElementById('direct-purchase');
             if (directCheck.checked) {
-                distInput.dataset.savedValue = distInput.value; 
+                distInput.dataset.savedValue = distInput.value;
                 distInput.value = 'DIREKTBEZUG WEIN WOLF';
                 distInput.style.pointerEvents = 'none';
                 distInput.style.opacity = '0.7';
@@ -455,7 +413,6 @@
             }
         }
 
-        // --- PRE-FLIGHT CHECK (THE GATEKEEPER) ---
         function isCanvasBlank(canvas) {
             if (canvas.width === 0 || canvas.height === 0) return true;
             const ctx = canvas.getContext('2d');
@@ -464,50 +421,27 @@
         }
 
         function triggerPrint() {
-            const requiredFields = ['partner-name', 'partner-email', 'partner-kundennummer', 'date-start', 'date-end', 'sig-location-date'];
+            const requiredFields = ['ww-employee-name', 'partner-name', 'partner-email', 'partner-kundennummer', 'date-start', 'date-end', 'sig-location-date'];
             let allGood = true;
-
-            // Text Fields validation
             requiredFields.forEach(id => {
                 const el = document.getElementById(id);
-                if (!el.value.trim()) {
-                    el.classList.add('input-error');
-                    allGood = false;
-                } else {
-                    el.classList.remove('input-error');
-                }
+                if (!el.value.trim()) { el.classList.add('input-error'); allGood = false; }
+                else { el.classList.remove('input-error'); }
             });
-
-            // Distributor or Direct Purchase validation
             const distInput = document.getElementById('distributor-name');
             const directCheck = document.getElementById('direct-purchase');
-            if (!directCheck.checked && !distInput.value.trim()) {
-                distInput.classList.add('input-error');
-                allGood = false;
-            } else {
-                distInput.classList.remove('input-error');
-            }
-
-            // Signatures validation
+            if (!directCheck.checked && !distInput.value.trim()) { distInput.classList.add('input-error'); allGood = false; }
+            else { distInput.classList.remove('input-error'); }
             ['sig-ww', 'sig-kunde'].forEach(id => {
                 const canvas = document.getElementById(id);
                 const wrapper = document.getElementById('wrap-' + id);
-                if (isCanvasBlank(canvas)) {
-                    wrapper.classList.add('wrapper-error');
-                    allGood = false;
-                } else {
-                    wrapper.classList.remove('wrapper-error');
-                }
+                if (isCanvasBlank(canvas)) { wrapper.classList.add('wrapper-error'); allGood = false; }
+                else { wrapper.classList.remove('wrapper-error'); }
             });
-
-            if (allGood) {
-                window.print();
-            } else {
-                alert("Sicherheitsprotokoll: Der Druckvorgang wurde blockiert. Bitte füllen Sie alle rot markierten Pflichtfelder (inkl. Bezugsweg) aus und leisten Sie beide Unterschriften.");
-            }
+            if (allGood) window.print();
+            else alert("Sicherheitsprotokoll: Der Druckvorgang wurde blockiert. Bitte geben Sie Ihren Namen an, füllen Sie alle rot markierten Pflichtfelder aus und leisten Sie beide Unterschriften.");
         }
 
-        // --- SIGNATURE MODAL ---
         const modal = document.getElementById('sig-modal');
         const mCanvas = document.getElementById('modal-canvas');
         const mCtx = mCanvas.getContext('2d');
@@ -528,7 +462,6 @@
         window.addEventListener('mouseup', () => drawing = false);
         mCanvas.addEventListener('touchstart', (e) => { drawing = true; mCtx.beginPath(); const p = getPos(e); mCtx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
         mCanvas.addEventListener('touchmove', (e) => { if(!drawing) return; const p = getPos(e); mCtx.lineTo(p.x, p.y); mCtx.stroke(); e.preventDefault(); }, {passive: false});
-
         function clearModalCanvas() { mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height); }
         function saveSignature() {
             const prev = document.getElementById(currentSigTarget);
@@ -540,7 +473,6 @@
 
         function hardReset() { if(confirm("Alle Eingaben löschen?")) { localStorage.removeItem('ww_contract_v5'); window.location.reload(); } }
 
-        // --- AUTO SAVE ---
         function attachAutoSave() {
             document.body.addEventListener('input', () => {
                 const state = {};
@@ -558,52 +490,27 @@
                         if (el.type === 'checkbox') el.checked = saved[el.id]; else el.value = saved[el.id];
                     }
                 });
-                
-                if (document.getElementById('direct-purchase').checked) {
-                    toggleDistributor();
-                }
-
+                if (document.getElementById('direct-purchase').checked) toggleDistributor();
                 validateDuration();
                 rvKPIs.forEach((_, i) => calcRV(i));
                 for (let i = 0; i < 8; i++) { if(document.getElementById(`wkz-select-${i}`).value) updateWKZ(i); }
             }
         }
 
-        // --- RENDERING ---
         window.onload = () => {
             const pGrid = document.getElementById('pouring-grid');
             const lGrid = document.getElementById('listing-grid');
-            pouringItems.forEach(item => {
-                pGrid.innerHTML += `<div><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}"></div>`;
-            });
-            listingItems.forEach(item => {
-                lGrid.innerHTML += `<div><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}"></div>`;
-            });
-
+            pouringItems.forEach(item => { pGrid.innerHTML += `<div><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}"></div>`; });
+            listingItems.forEach(item => { lGrid.innerHTML += `<div><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}"></div>`; });
             const rvBody = document.getElementById('rv-body');
             rvKPIs.forEach((item, i) => {
                 let tt = `<strong>Ziel:</strong> ${item.s1_qty} Einheiten<br>Fix: ${item.s1_val.toFixed(2)}€`;
                 if(item.s2_val) tt = `Stufe 1: ${item.s1_val.toFixed(2)}€ (ab ${item.s1_qty})<br>Stufe 2: ${item.s2_val.toFixed(2)}€ (ab ${item.s2_qty})`;
-                rvBody.innerHTML += `
-                    <tr>
-                        <td>${item.name} <div class="info-container"><span class="info-icon">i</span><span class="tooltip">${tt}</span></div></td>
-                        <td><input type="number" id="rv-qty-${i}" oninput="calcRV(${i})" placeholder="${item.s1_qty}"></td>
-                        <td><select id="rv-unit-${i}" onchange="updateTotals()"><option value="1.0" ${item.unit=='1,0l'?'selected':''}>1,0l</option><option value="0.7" ${item.unit=='0,7l'?'selected':''}>0,7l</option><option value="0.5" ${item.unit=='0,5l'?'selected':''}>0,5l</option></select></td>
-                        <td><input type="text" id="rv-price-${i}" oninput="calcRV(${i})"></td>
-                        <td id="rv-total-pa-${i}" class="total-cell">0.00 €</td>
-                        <td id="rv-total-dur-${i}" class="projection-cell">0.00 €</td>
-                    </tr>`;
+                rvBody.innerHTML += `<tr><td>${item.name} <div class="info-container"><span class="info-icon">i</span><span class="tooltip">${tt}</span></div></td><td><input type="number" id="rv-qty-${i}" oninput="calcRV(${i})" placeholder="${item.s1_qty}"></td><td><select id="rv-unit-${i}" onchange="updateTotals()"><option value="1.0" ${item.unit=='1,0l'?'selected':''}>1,0l</option><option value="0.7" ${item.unit=='0,7l'?'selected':''}>0,7l</option><option value="0.5" ${item.unit=='0,5l'?'selected':''}>0,5l</option></select></td><td><input type="text" id="rv-price-${i}" oninput="calcRV(${i})"></td><td id="rv-total-pa-${i}" class="total-cell">0.00 €</td><td id="rv-total-dur-${i}" class="projection-cell">0.00 €</td></tr>`;
             });
-
             const wkzBody = document.getElementById('wkz-body');
             for (let i = 0; i < 8; i++) {
-                wkzBody.innerHTML += `
-                    <tr>
-                        <td><select id="wkz-select-${i}" onchange="updateWKZ(${i})"><option value="" disabled selected>Marke...</option>${Object.keys(wkzKPIs).map(k=>`<option value="${k}">${k}</option>`).join('')}</select><div id="wkz-info-cont-${i}" class="info-container hidden"><span class="info-icon">i</span><span class="tooltip" id="wkz-tip-${i}"></span></div></td>
-                        <td><input type="text" id="wkz-task-${i}"></td>
-                        <td><select><option>Nach Umsetzung</option><option>Bei Abschluss</option><option>Keine Abrechnung</option></select></td>
-                        <td><input type="text" id="wkz-val-${i}" oninput="updateTotals()" placeholder="0.00"></td>
-                    </tr>`;
+                wkzBody.innerHTML += `<tr><td><select id="wkz-select-${i}" onchange="updateWKZ(${i})"><option value="" disabled selected>Marke...</option>${Object.keys(wkzKPIs).map(k=>`<option value="${k}">${k}</option>`).join('')}</select><div id="wkz-info-cont-${i}" class="info-container hidden"><span class="info-icon">i</span><span class="tooltip" id="wkz-tip-${i}"></span></div></td><td><input type="text" id="wkz-task-${i}"></td><td><select><option>Nach Umsetzung</option><option>Bei Abschluss</option><option>Keine Abrechnung</option></select></td><td><input type="text" id="wkz-val-${i}" oninput="updateTotals()" placeholder="0.00"></td></tr>`;
             }
             restoreAutoSave(); attachAutoSave();
         };
