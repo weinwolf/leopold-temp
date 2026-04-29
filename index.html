@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Wein Wolf - Kooperationsvereinbarung v6.5 (Secured)</title>
+    <title>Wein Wolf - Kooperationsvereinbarung v8.3 (Clean Print Edition)</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -11,6 +11,11 @@
             --ww-orange: #E45959; 
             --ww-border: #A3B5AD;
             --ww-error: #b32d2d;
+            
+            /* CI-konforme Paket-Farben für das Upselling */
+            --pkg-gin: #E45959;     /* WW Orange */
+            --pkg-rum: #C77943;     /* Kupfer / Oak */
+            --pkg-whiskey: #38705C; /* Lighter WW Green / Sage */
         }
         * { box-sizing: border-box; font-family: 'Source Sans Pro', sans-serif; }
         body { line-height: 1.5; color: var(--ww-green-dark); margin: 40px; background-color: var(--ww-green-light); }
@@ -29,14 +34,36 @@
         h3 { background: var(--ww-green-dark); color: #fff; padding: 10px 15px; text-transform: uppercase; font-size: 13px; letter-spacing: 1.5px; margin-top: 40px; border-bottom: 4px solid var(--ww-orange); }
         
         .visual-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 12px; margin: 20px 0; text-align: center; }
-        .bottle-placeholder { border: 1px solid var(--ww-border); height: 85px; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--ww-border); margin-bottom: 6px; overflow: hidden; }
-        .bottle-placeholder img { max-height: 100%; max-width: 100%; object-fit: contain; mix-blend-mode: multiply; }
+        .grid-item { position: relative; }
+        .bottle-placeholder { border: 1px solid var(--ww-border); height: 85px; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--ww-border); margin-bottom: 6px; overflow: hidden; transition: all 0.3s; position: relative; }
+        .bottle-placeholder img { max-height: 100%; max-width: 100%; object-fit: contain; mix-blend-mode: multiply; transition: all 0.3s; }
         .product-label { font-size: 8px; font-weight: 600; min-height: 24px; line-height: 1.1; text-transform: uppercase; }
         input[type="checkbox"] { cursor: pointer; accent-color: var(--ww-orange); }
 
+        /* Farb-Codiertes Highlighting System */
+        .bottle-placeholder.highlight-target { border-width: 2px; border-style: solid; box-shadow: 0 0 12px rgba(0,0,0,0.08); background: rgba(255,255,255,0.4); }
+        .bottle-placeholder.highlight-target::after { position: absolute; top: 0; right: 0; color: #fff; font-size: 7px; padding: 2px 4px; font-weight: 700; letter-spacing: 0.5px; content: attr(data-label); }
+        
+        .bottle-placeholder.highlight-gin { border-color: var(--pkg-gin); }
+        .bottle-placeholder.highlight-gin::after { background: var(--pkg-gin); }
+        
+        .bottle-placeholder.highlight-rum { border-color: var(--pkg-rum); }
+        .bottle-placeholder.highlight-rum::after { background: var(--pkg-rum); }
+        
+        .bottle-placeholder.highlight-whiskey { border-color: var(--pkg-whiskey); }
+        .bottle-placeholder.highlight-whiskey::after { background: var(--pkg-whiskey); }
+
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; }
         th { font-family: 'Montserrat', sans-serif; background-color: var(--ww-green-dark); color: #fff; border: 1px solid var(--ww-green-dark); padding: 10px; font-size: 10px; text-transform: uppercase; text-align: left; }
-        td { border: 1px solid var(--ww-border); padding: 8px; font-size: 12px; }
+        td { border: 1px solid var(--ww-border); padding: 8px; font-size: 12px; vertical-align: top; }
+        
+        .rv-row, .wkz-row { display: none; }
+        .rv-row.is-active, .wkz-row.is-active { display: table-row; }
+        
+        .wkz-row.locked { opacity: 0.5; background: #f0f0f0; }
+        .wkz-row.locked input { pointer-events: none; text-decoration: line-through; }
+        .missing-alert { display: block; font-size: 10px; font-weight: bold; margin-top: 5px; line-height: 1.3; transition: color 0.3s; }
+
         tfoot td { background-color: #f9f9f9; font-weight: 700; border-top: 2px solid var(--ww-green-dark); }
 
         input[type="number"], input[type="text"], input[type="date"], input[type="email"], select, textarea { width: 95%; border: none; background: transparent; font-size: 13px; outline: none; color: var(--ww-green-dark); transition: background-color 0.3s, border-color 0.3s; }
@@ -51,10 +78,14 @@
         
         #grand-total-container { margin-top: 40px; padding: 25px; background: var(--ww-green-dark); color: #fff; display: flex; justify-content: space-between; align-items: center; border-left: 10px solid var(--ww-orange); }
 
-        .info-container { display: inline-block; position: relative; margin-left: 5px; cursor: help; }
+        .info-container { display: inline-block; position: relative; margin-left: 5px; cursor: help; vertical-align: middle; }
         .info-icon { color: var(--ww-orange); font-weight: bold; border: 1px solid var(--ww-orange); border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; }
         .tooltip { visibility: hidden; width: 220px; background: var(--ww-green-dark); color: #fff; border-radius: 4px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; font-size: 10px; border-left: 3px solid var(--ww-orange); text-align: left; }
         .info-container:hover .tooltip { visibility: visible; opacity: 1; }
+
+        .progress-bg { width: 95%; height: 5px; background: #e0e0e0; border-radius: 3px; margin-top: 6px; overflow: hidden; display: none; }
+        .progress-bar { height: 100%; width: 0%; background: var(--ww-orange); transition: width 0.4s ease-out, background-color 0.4s; }
+        .progress-text { font-size: 9px; color: var(--ww-border); margin-top: 3px; display: none; line-height: 1.2; }
 
         .sig-wrapper { border: 1px solid var(--ww-orange); background: #fff; width: 100%; height: 120px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: all 0.3s; }
         .sig-wrapper span { font-size: 10px; color: var(--ww-border); text-transform: uppercase; font-weight: bold; }
@@ -70,7 +101,6 @@
         .btn-clear { background: #eee; color: #333; }
 
         .custom-textarea { width: 100%; min-height: 100px; padding: 15px; border: 1px solid var(--ww-orange); background: #fff; resize: vertical; margin-top: 15px; }
-
         .legal-block { font-size: 12px; margin-top: 30px; padding: 20px; background: #fff; border: 1px solid var(--ww-orange); text-align: justify; line-height: 1.6; color: var(--ww-green-dark); }
         .footer-signatures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 50px; }
         .sig-box { border-top: 2px solid var(--ww-green-dark); padding-top: 5px; font-size: 10px; text-transform: uppercase; font-weight: 700; margin-top: 5px; }
@@ -79,8 +109,11 @@
         .hidden { display: none !important; }
         
         .print-btn { position: fixed; bottom: 30px; right: 30px; background-color: var(--ww-orange); color: #fff; border: none; padding: 15px 25px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 4px; z-index: 1000; }
-        .action-container { text-align: center; margin-top: 80px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-        .reset-all-btn { background: transparent; border: 2px solid var(--ww-error); padding: 10px 20px; color: var(--ww-error); font-family: 'Montserrat', sans-serif; font-size: 10px; text-transform: uppercase; font-weight: 700; cursor: pointer; border-radius: 4px; transition: all 0.3s; letter-spacing: 1px; }
+        
+        .action-container { text-align: center; margin-top: 80px; margin-bottom: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .util-btn { background: transparent; border: 2px solid var(--ww-border); padding: 10px 20px; color: var(--ww-green-dark); font-family: 'Montserrat', sans-serif; font-size: 10px; text-transform: uppercase; font-weight: 700; cursor: pointer; border-radius: 4px; transition: all 0.3s; letter-spacing: 1px; }
+        .util-btn:hover { background: rgba(163, 181, 173, 0.2); }
+        .reset-all-btn { border-color: var(--ww-error); color: var(--ww-error); }
         .reset-all-btn:hover { background: rgba(179, 45, 45, 0.1); }
 
         @media print { 
@@ -90,6 +123,12 @@
             .line-input { border-bottom: 1px solid #000 !important; }
             .custom-textarea { border: 1px solid var(--ww-border) !important; }
             select { appearance: none; -webkit-appearance: none; }
+            .rv-row, .wkz-row { display: none; }
+            .rv-row.is-active, .wkz-row.is-active { display: table-row !important; }
+            .missing-alert { display: none !important; } 
+            
+            /* Clean Print CSS Fallback (JS handles the main logic) */
+            .grid-item:not(:has(input:checked)) { display: none !important; }
         }
     </style>
 </head>
@@ -113,7 +152,7 @@
             <img src="https://www.weinwolf.de/bundles/weinwolftheme/storefront/img/logo_header.svg?17144500985059" alt="WEIN WOLF">
         </div>
         <h1>Kooperationsvereinbarung</h1>
-        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v6.5</div>
+        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v8.3 CLEAN PRINT</div>
     </div>
 
     <div class="partner-section">
@@ -121,7 +160,7 @@
             <div class="partner-label">Vertragspartner 1</div>
             <div class="partner-info">
                 <strong>Wein Wolf GmbH</strong><br>
-                <input type="text" id="ww-employee-name" class="line-input" placeholder="Name des AD-Mitarbeiters" style="margin-bottom: 10px; margin-top: 5px;" oninput="this.classList.remove('input-error')"><br>
+                <input type="text" id="ww-employee-name" class="line-input" placeholder="Name des AD-Mitarbeiters" style="margin-bottom: 10px; margin-top: 5px;"><br>
                 Königswinterer Str. 552<br>
                 53227 Bonn
             </div>
@@ -129,9 +168,9 @@
         <div class="partner-box">
             <div class="partner-label">Vertragspartner 2 (Partner)</div>
             <div class="partner-info">
-                <input type="text" id="partner-name" class="line-input" placeholder="Name der Firma / Inhaber" oninput="this.classList.remove('input-error')">
-                <input type="email" id="partner-email" class="line-input print-hide" placeholder="E-Mail Adresse für interne Ablage" style="margin-top: 10px;" oninput="this.classList.remove('input-error')">
-                <input type="text" id="partner-kundennummer" class="line-input" placeholder="Kundennummer" style="margin-top: 10px;" oninput="this.classList.remove('input-error')">
+                <input type="text" id="partner-name" class="line-input" placeholder="Name der Firma / Inhaber">
+                <input type="email" id="partner-email" class="line-input print-hide" placeholder="E-Mail Adresse für interne Ablage" style="margin-top: 10px;">
+                <input type="text" id="partner-kundennummer" class="line-input" placeholder="Kundennummer" style="margin-top: 10px;">
                 <div style="font-size: 10px; color: #888; margin-top: 5px;">(nachfolgend "Partner" genannt)</div>
             </div>
         </div>
@@ -144,25 +183,25 @@
     
     <div class="section">
         <p style="font-size:14px;">
-            Laufzeit: von <input type="date" id="date-start" onchange="validateDuration(); this.classList.remove('input-error')" style="width:140px; border-bottom:2px solid var(--ww-orange);"> 
-            bis <input type="date" id="date-end" onchange="validateDuration(); this.classList.remove('input-error')" style="width:140px; border-bottom:2px solid var(--ww-orange);">
+            Laufzeit: von <input type="date" id="date-start" onchange="validateDuration()" style="width:140px; border-bottom:2px solid var(--ww-orange);"> 
+            bis <input type="date" id="date-end" onchange="validateDuration()" style="width:140px; border-bottom:2px solid var(--ww-orange);">
             <span id="duration-display" class="duration-badge hidden">0 Monate</span>
         </p>
     </div>
 
-    <h3>Selection Pouring</h3>
+    <h3 id="h3-pouring">Selection Pouring</h3>
     <div class="visual-grid" id="pouring-grid"></div>
 
-    <h3>Portfolio Listing</h3>
+    <h3 id="h3-listing">Portfolio Listing</h3>
     <div class="visual-grid" id="listing-grid"></div>
 
     <h3>1. Rückvergütung (Performance Rebates)</h3>
-    <table>
+    <table id="rv-main-table">
         <thead>
             <tr>
                 <th style="width: 25%;">Marke</th>
-                <th style="width: 12%;">Zielmenge p.a.</th>
-                <th style="width: 12%;">Volumen</th>
+                <th style="width: 14%;">Zielmenge p.a.</th>
+                <th style="width: 10%;">Volumen</th>
                 <th style="width: 15%;">Vergütung (€)</th>
                 <th style="width: 18%;">Gesamtsumme p.a.</th>
                 <th style="width: 18%; background: rgba(228, 89, 89, 0.1); color: var(--ww-orange);">Wert Laufzeit</th>
@@ -179,7 +218,7 @@
     </table>
 
     <h3>2. Werbekostenzuschuss (WKZ)</h3>
-    <table>
+    <table id="wkz-main-table">
         <thead>
             <tr>
                 <th style="width: 25%;">Marke / Paket</th>
@@ -207,12 +246,12 @@
 
     <div class="legal-block">
         <strong>§1</strong> Der Partner wird die vereinbarten Produkte im Vertragszeitraum und bis zur vereinbarten Zielmenge ausschenken, auf der Getränkekarte listen, sowie in der Bar sichtbar präsentieren.<br><br>
-        <strong>§2</strong> Die Abrechnung der Rückvergütungen erfolgt jährlich nach Erfüllung (mind. 80 % der Gesamt-Zielmenge) der Zielmengen gegen Rechnung und Bezugsnachweis über den Fachgroßhändler. Es werden ausschließlich nur von VOLUME SPIRITS / Wein Wolf GmbH distribuierte Produkte vergütet.<br><br>
+        <strong>§2</strong> Die Abrechnung der Rückvergütungen erfolgt jährlich nach Erfüllung (mind. 80 % der Gesamt-Zielmenge) der Zielmengen gegen Rechnung und Bezugsnachweis über den Fachgroßhändler.<br><br>
         <strong>§3</strong> Sollte die Zielmenge nicht erreicht werden verlängert sich die Vereinbarung einmalig um weitere 12 Monate.<br><br>
         
         <div style="display: flex; align-items: center; margin-top: 15px;">
             <strong style="margin-right: 10px;">Bezugsweg:</strong> 
-            <input type="text" id="distributor-name" style="width: 45%; border-bottom: 2px solid var(--ww-orange);" placeholder="Fachgroßhändler inkl. Kundennummer" oninput="this.classList.remove('input-error')">
+            <input type="text" id="distributor-name" style="width: 45%; border-bottom: 2px solid var(--ww-orange);" placeholder="Fachgroßhändler inkl. Kundennummer">
             <span class="print-hide" style="margin-left: 20px; display: inline-flex; align-items: center; gap: 8px;">
                 <input type="checkbox" id="direct-purchase" onchange="toggleDistributor()">
                 <label for="direct-purchase" style="cursor: pointer; font-weight: 600; font-size: 13px; color: var(--ww-green-dark);">Direktbezug Wein Wolf</label>
@@ -222,7 +261,7 @@
 
     <div class="footer-signatures">
         <div class="sig-container">
-            <div style="height: 120px;"><input type="text" id="sig-location-date" style="border-bottom: 2px solid var(--ww-orange); margin-top: 80px; width:100%;" placeholder="Ort / Datum" oninput="this.classList.remove('input-error')"></div>
+            <div style="height: 120px;"><input type="text" id="sig-location-date" style="border-bottom: 2px solid var(--ww-orange); margin-top: 80px; width:100%;" placeholder="Ort / Datum"></div>
             <div class="sig-box">Standort & Datum</div>
         </div>
         <div class="sig-container">
@@ -242,10 +281,31 @@
     </div>
 
     <div class="action-container print-hide">
-        <button type="button" class="reset-all-btn" onclick="hardReset()">⚠️ Formular Zurücksetzen</button>
+        <button type="button" class="util-btn" onclick="exportDraft()">💾 Entwurf speichern</button>
+        <button type="button" class="util-btn" onclick="document.getElementById('import-file').click()">📂 Entwurf laden</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDraft(event)">
+        <button type="button" class="util-btn reset-all-btn" onclick="hardReset()">⚠️ Formular Zurücksetzen</button>
     </div>
 
     <script>
+        const matrixMap = {
+            "pour-0": [0, 1], "pour-1": [3], "pour-2": [2], "pour-3": [10], "pour-4": [9],
+            "pour-6": [8], "pour-7": [20], "pour-8": [5], "list-0": [7], "list-1": [7],
+            "list-2": [15], "list-3": [16], "list-4": [13], "list-5": [19], "list-6": [6],
+            "list-8": [21], "list-9": [4], "list-10": [11], "list-11": [22], "list-12": [17], "list-13": [12]
+        };
+
+        const wkzItems = [
+            { name: "Benvenuti Limoncello", req: ["list-4"], val: 200, task: "Limoncello Switch", goal: "100 Flaschen", note: "", label: "", cssClass: "" },
+            { name: "Cucielo Vermouth", req: ["list-5"], val: 250, task: "Vermouth Switch", goal: "75 Flaschen", note: "", label: "", cssClass: "" },
+            { name: "Disaronno Originale", req: ["list-0"], val: 100, task: "Cocktail Drink Activation Disaronno Sour etc.", goal: "100 Flaschen", note: "Wichtig: Drink Aktivierung", label: "", cssClass: "" },
+            { name: "Tia Maria Switch", req: ["pour-7"], val: 300, task: "Kaffeelikör Switch", goal: "100 Flaschen", note: "", label: "", cssClass: "" },
+            { name: "Angostura Bitters", req: ["list-17"], val: 100, task: "Listung & Aktivierung Bitters Range (3 Qualitäten) + 1919", goal: "je 12 Flaschen", note: "Wichtig: Drink Aktivierung", label: "", cssClass: "" },
+            { name: "Gin Package", req: ["list-8", "list-7", "pour-8"], val: 1500, task: "Listung Engine / Macaronesian / Martin Millers", goal: "150 Flaschen", note: "(3/3 Gelistet)", label: "ZIEL: GIN", cssClass: "highlight-gin" },
+            { name: "Rum Combi Strategy", req: ["pour-2", "pour-4", "pour-3", "pour-5"], val: 150, task: "Listung Pampero / Angostura 3Y / Myers's plus Drink 1919", goal: "100 Flaschen", note: "Wichtig: Drink Aktivierung", label: "ZIEL: RUM", cssClass: "highlight-rum" },
+            { name: "Whiskey Combi Strategy", req: ["list-9", "list-10", "list-11", "pour-1"], val: 150, task: "Listung Sazerac / Eagle Rare / The Busker / Buffalo Trace", goal: "100 Flaschen", note: "Wichtig: Drink Aktivierung", label: "ZIEL: WHISKEY", cssClass: "highlight-whiskey" }
+        ];
+
         const pouringItems = [
             { id: "pour-0", name: "Zubrowka", img: "https://www.weinwolf.de/thumbnail/e1/26/2b/1742828743/825000_2412_1920x1920.webp" },
             { id: "pour-1", name: "Buffalo Trace", img: "https://www.weinwolf.de/thumbnail/cb/2d/c9/1755504318/860001_2508_1920x1920.webp" },
@@ -255,7 +315,7 @@
             { id: "pour-5", name: "Angostura 1919", img: "https://www.weinwolf.de/thumbnail/63/47/7c/1773129955/710209_2510_MitGP_1920x1920.webp" },
             { id: "pour-6", name: "Lunazul Tequila", img: "https://www.weinwolf.de/thumbnail/7d/02/09/1717246215/833000_2301_1920x1920.png" },
             { id: "pour-7", name: "Tia Maria", img: "https://www.weinwolf.de/thumbnail/a2/de/c0/1724922342/713109_2408_1920x1920.png" },
-            { id: "pour-8", name: "Martin Miller's", img: "" }
+            { id: "pour-8", name: "Martin Miller's", img: "https://www.weinwolf.de/thumbnail/f1/7e/26/1769164529/009500_2601_1920x1920.webp" }
         ];
 
         const listingItems = [
@@ -306,31 +366,141 @@
             { name: "Corazon Tequila", unit: "0,7l", s1_val: 1.00, s1_qty: 50 }
         ];
 
-        const wkzKPIs = {
-            "Benvenuti Limoncello": { val: "200.00", goal: "100 Flaschen", task: "Limoncello Switch", note: "" },
-            "Cucielo Vermouth": { val: "250.00", goal: "75 Flaschen", task: "Vermouth Switch", note: "" },
-            "Disaronno Originale": { val: "100.00", goal: "100 Flaschen", task: "Cocktail Drink Activation Disaronno Sour etc.", note: "Wichtig: Drink Aktivierung" },
-            "Gin Package": { val: "1500.00", goal: "150 Flaschen", task: "Listung Engine / Macaronesian / Martin Millers", note: "(3/3)" },
-            "Rum Combi Strategy": { val: "150.00", goal: "100 Flaschen", task: "Listung Pampero / Angostura / Myers´s plus Drink 1919", note: "Wichtig: Drink Aktivierung" },
-            "Tia Maria Switch": { val: "300.00", goal: "100 Flaschen", task: "Kaffeelikör Switch", note: "" },
-            "Whiskey Combi Strategy": { val: "150.00", goal: "100 Flaschen", task: "Listung Sazerac / Eagle Rare / The Busker / Buffalo Trace", note: "Wichtig: Drink Aktivierung" },
-            "Angostura Bitters": { val: "100.00", goal: "je 12 Flaschen", task: "Listung & Aktivierung Bitters Range (3 Qualitäten) + 1919", note: "Wichtig: Drink Aktivierung" }
-        };
-
         let contractMonths = 0;
         let currentSigTarget = null;
+
+        // Clean Print Protocol: Event Listener für den Druckvorgang
+        window.addEventListener('beforeprint', () => {
+            // Check Pouring Grid
+            const pouringGrid = document.getElementById('pouring-grid');
+            if (pouringGrid.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
+                pouringGrid.style.display = 'none';
+                document.getElementById('h3-pouring').style.display = 'none';
+            }
+            
+            // Check Listing Grid
+            const listingGrid = document.getElementById('listing-grid');
+            if (listingGrid.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
+                listingGrid.style.display = 'none';
+                document.getElementById('h3-listing').style.display = 'none';
+            }
+
+            // Unchecked Items ausblenden
+            document.querySelectorAll('.grid-item').forEach(item => {
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (cb && !cb.checked) {
+                    item.style.display = 'none';
+                    item.classList.add('hidden-for-print');
+                }
+            });
+        });
+
+        window.addEventListener('afterprint', () => {
+            // Nach dem Druck alles wieder in den Ursprungszustand versetzen
+            document.getElementById('pouring-grid').style.display = '';
+            document.getElementById('h3-pouring').style.display = '';
+            document.getElementById('listing-grid').style.display = '';
+            document.getElementById('h3-listing').style.display = '';
+
+            document.querySelectorAll('.hidden-for-print').forEach(item => {
+                item.style.display = '';
+                item.classList.remove('hidden-for-print');
+            });
+        });
+
+        const getItemName = (id) => {
+            const item = pouringItems.find(p => p.id === id) || listingItems.find(l => l.id === id);
+            return item ? item.name : id;
+        };
+
+        function syncAllMatrices() {
+            const rvRows = document.querySelectorAll('.rv-row');
+            rvRows.forEach(row => row.classList.remove('is-active'));
+
+            Object.keys(matrixMap).forEach(imgId => {
+                const cb = document.getElementById(imgId);
+                if (cb && cb.checked) {
+                    matrixMap[imgId].forEach(index => {
+                        const targetRow = document.getElementById(`rv-row-${index}`);
+                        if (targetRow) targetRow.classList.add('is-active');
+                    });
+                }
+            });
+
+            rvKPIs.forEach((_, i) => {
+                const row = document.getElementById(`rv-row-${i}`);
+                if (row && !row.classList.contains('is-active')) {
+                    document.getElementById(`rv-qty-${i}`).value = ""; 
+                    calcRV(i);
+                }
+            });
+
+            document.querySelectorAll('.bottle-placeholder').forEach(el => {
+                el.classList.remove('highlight-target', 'highlight-gin', 'highlight-rum', 'highlight-whiskey');
+                el.removeAttribute('data-label');
+            });
+
+            wkzItems.forEach((item, i) => {
+                const row = document.getElementById(`wkz-row-${i}`);
+                if (!row) return;
+
+                const checkedIds = item.req.filter(id => document.getElementById(id) && document.getElementById(id).checked);
+                const missingIds = item.req.filter(id => !document.getElementById(id) || !document.getElementById(id).checked);
+                const missingAlertSpan = document.getElementById(`wkz-missing-${i}`);
+
+                if (checkedIds.length === 0) {
+                    row.classList.remove('is-active', 'locked');
+                    if (missingAlertSpan) missingAlertSpan.innerHTML = '';
+                } else if (missingIds.length === 0) {
+                    row.classList.add('is-active');
+                    row.classList.remove('locked');
+                    if (missingAlertSpan) missingAlertSpan.innerHTML = '';
+                } else {
+                    if (item.req.length > 1) { 
+                        row.classList.add('is-active', 'locked');
+                        const missingNames = missingIds.map(id => getItemName(id)).join(', ');
+                        
+                        if (missingAlertSpan) {
+                            missingAlertSpan.innerHTML = `🔒 Potenzial: ${item.val.toFixed(2)} €. Fehlend: ${missingNames}`;
+                            let textColor = 'var(--ww-orange)';
+                            if(item.cssClass === 'highlight-gin') textColor = 'var(--pkg-gin)';
+                            if(item.cssClass === 'highlight-rum') textColor = 'var(--pkg-rum)';
+                            if(item.cssClass === 'highlight-whiskey') textColor = 'var(--pkg-whiskey)';
+                            missingAlertSpan.style.color = textColor;
+                        }
+
+                        missingIds.forEach(id => {
+                            const cb = document.getElementById(id);
+                            if (cb) {
+                                const placeholder = cb.parentElement.querySelector('.bottle-placeholder');
+                                placeholder.classList.add('highlight-target', item.cssClass);
+                                placeholder.setAttribute('data-label', item.label);
+                            }
+                        });
+                    } else {
+                        row.classList.remove('is-active');
+                    }
+                }
+            });
+
+            updateTotals();
+        }
 
         function validateDuration() {
             const start = new Date(document.getElementById('date-start').value);
             const end = new Date(document.getElementById('date-end').value);
             const display = document.getElementById('duration-display');
+            
             if (start && end && end > start) {
                 const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
                 contractMonths = months;
                 display.innerText = `${months} Monate`;
                 display.classList.remove('hidden');
-            } else { contractMonths = 0; display.classList.add('hidden'); }
-            updateTotals();
+            } else { 
+                contractMonths = 0; 
+                display.classList.add('hidden'); 
+            }
+            rvKPIs.forEach((_, i) => calcRV(i));
         }
 
         const parseNum = (v) => parseFloat(String(v).replace(/[^-0-9,.]/g, '').replace(',', '.')) || 0;
@@ -338,22 +508,57 @@
         function calcRV(idx) {
             const qtyInput = document.getElementById(`rv-qty-${idx}`);
             const priceInput = document.getElementById(`rv-price-${idx}`);
-            const qty = parseNum(qtyInput.value);
+            const qtyPa = parseNum(qtyInput.value);
             const price = parseNum(priceInput.value);
             const item = rvKPIs[idx];
+            
+            const effectiveMonths = contractMonths > 0 ? contractMonths : 12;
+            const totalQty = (qtyPa / 12) * effectiveMonths;
+            
             let limit = item.s1_val;
-            if (item.s2_val && qty >= item.s2_qty) limit = item.s2_val;
-            priceInput.placeholder = (qty > 0) ? limit.toFixed(2) : "";
+            let isTier2 = false;
+
+            if (item.s2_val) {
+                if (totalQty >= item.s2_qty) { limit = item.s2_val; isTier2 = true; }
+                const progBg = document.getElementById(`rv-prog-bg-${idx}`);
+                const progBar = document.getElementById(`rv-prog-${idx}`);
+                const progTxt = document.getElementById(`rv-prog-txt-${idx}`);
+
+                if (progBg && progBar && progTxt) {
+                    if (qtyPa > 0) {
+                        progBg.style.display = 'block'; progTxt.style.display = 'block';
+                        let percent = (totalQty / item.s2_qty) * 100;
+                        progBar.style.width = (percent > 100 ? 100 : percent) + '%';
+                        
+                        if (isTier2) {
+                            progBar.style.background = 'var(--ww-green-dark)';
+                            progTxt.innerText = `👑 Stufe 2 erreicht`;
+                            progTxt.style.color = 'var(--ww-green-dark)';
+                            progTxt.style.fontWeight = 'bold';
+                        } else {
+                            let missing = Math.ceil(item.s2_qty - totalQty);
+                            progBar.style.background = 'var(--ww-orange)';
+                            progTxt.innerText = `Noch ${missing} Flaschen`;
+                            progTxt.style.color = 'var(--ww-border)';
+                            progTxt.style.fontWeight = 'normal';
+                        }
+                    } else {
+                        progBg.style.display = 'none'; progTxt.style.display = 'none';
+                    }
+                }
+            }
+
+            priceInput.placeholder = (qtyPa > 0) ? limit.toFixed(2) : "";
             const paCell = document.getElementById(`rv-total-pa-${idx}`);
             const durCell = document.getElementById(`rv-total-dur-${idx}`);
+
             if (price > limit) {
                 priceInput.classList.add('input-error');
-                paCell.innerText = "LIMIT!";
-                durCell.innerText = "---";
+                paCell.innerText = "LIMIT!"; durCell.innerText = "---";
             } else {
                 priceInput.classList.remove('input-error');
-                const totalPa = qty * price;
-                const totalDur = (totalPa / 12) * contractMonths;
+                const totalPa = qtyPa * price;
+                const totalDur = contractMonths > 0 ? (totalPa / 12) * contractMonths : 0;
                 paCell.innerText = totalPa.toFixed(2) + " €";
                 durCell.innerText = totalDur.toFixed(2) + " €";
             }
@@ -362,39 +567,35 @@
 
         function updateTotals() {
             let subPa = 0, subDur = 0, subWkz = 0, totalProjectedLiters = 0;
+            
             rvKPIs.forEach((_, i) => {
-                const qty = parseNum(document.getElementById(`rv-qty-${i}`).value);
-                const paTxt = document.getElementById(`rv-total-pa-${i}`).innerText;
-                const durTxt = document.getElementById(`rv-total-dur-${i}`).innerText;
-                const volMultiplier = parseFloat(document.getElementById(`rv-unit-${i}`).value) || 1;
-                if (!paTxt.includes("LIMIT")) {
-                    subPa += parseNum(paTxt);
-                    subDur += parseNum(durTxt);
-                    if (qty > 0 && contractMonths > 0) totalProjectedLiters += ((qty * volMultiplier) / 12) * contractMonths;
+                const row = document.getElementById(`rv-row-${i}`);
+                if (row && row.classList.contains('is-active')) {
+                    const qty = parseNum(document.getElementById(`rv-qty-${i}`).value);
+                    const paTxt = document.getElementById(`rv-total-pa-${i}`).innerText;
+                    const durTxt = document.getElementById(`rv-total-dur-${i}`).innerText;
+                    const volMultiplier = parseFloat(document.getElementById(`rv-unit-${i}`).value) || 1;
+                    
+                    if (!paTxt.includes("LIMIT")) {
+                        subPa += parseNum(paTxt); subDur += parseNum(durTxt);
+                        if (qty > 0 && contractMonths > 0) totalProjectedLiters += ((qty * volMultiplier) / 12) * contractMonths;
+                    }
                 }
             });
             document.getElementById('subtotal-rv-pa').innerText = subPa.toFixed(2) + " €";
             document.getElementById('subtotal-rv-dur').innerText = subDur.toFixed(2) + " €";
-            for (let i = 0; i < 8; i++) subWkz += parseNum(document.getElementById(`wkz-val-${i}`).value);
+            
+            wkzItems.forEach((_, i) => {
+                const row = document.getElementById(`wkz-row-${i}`);
+                if (row && row.classList.contains('is-active') && !row.classList.contains('locked')) {
+                    subWkz += parseNum(document.getElementById(`wkz-val-${i}`).value);
+                }
+            });
             document.getElementById('subtotal-wkz').innerText = subWkz.toFixed(2) + " €";
+            
             const grandTotal = subDur + subWkz;
             document.getElementById('grand-total').innerText = grandTotal.toFixed(2) + " €";
             document.getElementById('avg-invest').innerText = totalProjectedLiters > 0 ? `Ø Investition: ${(grandTotal / totalProjectedLiters).toFixed(2)} € / Liter` : "0.00 € / Liter";
-        }
-
-        function updateWKZ(idx) {
-            const sel = document.getElementById(`wkz-select-${idx}`);
-            const valInput = document.getElementById(`wkz-val-${idx}`);
-            const taskInput = document.getElementById(`wkz-task-${idx}`);
-            const data = wkzKPIs[sel.value];
-            if (data) { 
-                valInput.value = data.val;
-                taskInput.value = data.task; 
-                const tooltip = document.getElementById(`wkz-tip-${idx}`);
-                document.getElementById(`wkz-info-cont-${idx}`).classList.remove('hidden');
-                tooltip.innerHTML = `<strong>Ziel:</strong> ${data.goal}${data.note ? '<br><span style="color:var(--ww-orange)">' + data.note + '</span>' : ''}`;
-            }
-            updateTotals();
         }
 
         function toggleDistributor() {
@@ -413,33 +614,16 @@
             }
         }
 
-        function isCanvasBlank(canvas) {
-            if (canvas.width === 0 || canvas.height === 0) return true;
-            const ctx = canvas.getContext('2d');
-            const pixelBuffer = new Uint32Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer);
-            return !pixelBuffer.some(color => color !== 0);
-        }
-
         function triggerPrint() {
-            const requiredFields = ['ww-employee-name', 'partner-name', 'partner-email', 'partner-kundennummer', 'date-start', 'date-end', 'sig-location-date'];
+            const requiredFields = ['ww-employee-name', 'partner-name', 'date-start', 'date-end'];
             let allGood = true;
             requiredFields.forEach(id => {
                 const el = document.getElementById(id);
                 if (!el.value.trim()) { el.classList.add('input-error'); allGood = false; }
                 else { el.classList.remove('input-error'); }
             });
-            const distInput = document.getElementById('distributor-name');
-            const directCheck = document.getElementById('direct-purchase');
-            if (!directCheck.checked && !distInput.value.trim()) { distInput.classList.add('input-error'); allGood = false; }
-            else { distInput.classList.remove('input-error'); }
-            ['sig-ww', 'sig-kunde'].forEach(id => {
-                const canvas = document.getElementById(id);
-                const wrapper = document.getElementById('wrap-' + id);
-                if (isCanvasBlank(canvas)) { wrapper.classList.add('wrapper-error'); allGood = false; }
-                else { wrapper.classList.remove('wrapper-error'); }
-            });
             if (allGood) window.print();
-            else alert("Sicherheitsprotokoll: Der Druckvorgang wurde blockiert. Bitte geben Sie Ihren Namen an, füllen Sie alle rot markierten Pflichtfelder aus und leisten Sie beide Unterschriften.");
+            else alert("Bitte füllen Sie die Stammdaten aus.");
         }
 
         const modal = document.getElementById('sig-modal');
@@ -448,15 +632,11 @@
         let drawing = false;
 
         function openSigModal(targetId) {
-            currentSigTarget = targetId;
-            modal.style.display = 'flex';
+            currentSigTarget = targetId; modal.style.display = 'flex';
             mCanvas.width = mCanvas.offsetWidth; mCanvas.height = mCanvas.offsetHeight;
             mCtx.strokeStyle = "#1B4D3E"; mCtx.lineWidth = 3; mCtx.lineCap = "round";
         }
-        function getPos(e) {
-            const r = mCanvas.getBoundingClientRect();
-            return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top };
-        }
+        function getPos(e) { const r = mCanvas.getBoundingClientRect(); return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top }; }
         mCanvas.addEventListener('mousedown', (e) => { drawing = true; mCtx.beginPath(); const p = getPos(e); mCtx.moveTo(p.x, p.y); });
         mCanvas.addEventListener('mousemove', (e) => { if(!drawing) return; const p = getPos(e); mCtx.lineTo(p.x, p.y); mCtx.stroke(); });
         window.addEventListener('mouseup', () => drawing = false);
@@ -467,52 +647,86 @@
             const prev = document.getElementById(currentSigTarget);
             prev.width = prev.offsetWidth; prev.height = prev.offsetHeight;
             prev.getContext('2d').drawImage(mCanvas, 0, 0, prev.width, prev.height);
-            document.getElementById('wrap-' + currentSigTarget).classList.remove('wrapper-error');
             modal.style.display = 'none'; clearModalCanvas();
         }
 
-        function hardReset() { if(confirm("Alle Eingaben löschen?")) { localStorage.removeItem('ww_contract_v5'); window.location.reload(); } }
+        function hardReset() { if(confirm("Alle Eingaben löschen?")) { localStorage.removeItem('ww_contract_v8_3'); window.location.reload(); } }
 
-        function attachAutoSave() {
-            document.body.addEventListener('input', () => {
-                const state = {};
-                document.querySelectorAll('input:not([type="button"]), select, textarea').forEach(el => {
-                    if (el.id) state[el.id] = el.type === 'checkbox' ? el.checked : el.value;
-                });
-                localStorage.setItem('ww_contract_v5', JSON.stringify(state));
+        function exportDraft() {
+            const state = {};
+            document.querySelectorAll('input:not([type="button"]):not([type="file"]), select, textarea').forEach(el => {
+                if (el.id) state[el.id] = el.type === 'checkbox' ? el.checked : el.value;
             });
+            state['sig-ww-data'] = document.getElementById('sig-ww').toDataURL();
+            state['sig-kunde-data'] = document.getElementById('sig-kunde').toDataURL();
+            let customerName = document.getElementById('partner-name').value.trim().replace(/[^a-zA-Z0-9äöüÄÖÜß]/g, '_');
+            const fileName = `WW_Entwurf_${customerName || 'Unbenannt'}_${new Date().toISOString().split('T')[0]}.json`;
+            const blob = new Blob([JSON.stringify(state)], {type: "application/json"});
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
         }
-        function restoreAutoSave() {
-            const saved = JSON.parse(localStorage.getItem('ww_contract_v5'));
-            if (saved) {
-                document.querySelectorAll('input:not([type="button"]), select, textarea').forEach(el => {
-                    if (el.id && saved[el.id] !== undefined) {
-                        if (el.type === 'checkbox') el.checked = saved[el.id]; else el.value = saved[el.id];
-                    }
-                });
-                if (document.getElementById('direct-purchase').checked) toggleDistributor();
-                validateDuration();
-                rvKPIs.forEach((_, i) => calcRV(i));
-                for (let i = 0; i < 8; i++) { if(document.getElementById(`wkz-select-${i}`).value) updateWKZ(i); }
-            }
+
+        function importDraft(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const state = JSON.parse(e.target.result);
+                    document.querySelectorAll('input:not([type="button"]):not([type="file"]), select, textarea').forEach(el => {
+                        if (el.id && state[el.id] !== undefined) { if (el.type === 'checkbox') el.checked = state[el.id]; else el.value = state[el.id]; }
+                    });
+                    ['sig-ww', 'sig-kunde'].forEach(id => {
+                        if(state[id+'-data']) {
+                            const canvas = document.getElementById(id); const img = new Image();
+                            img.onload = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height); };
+                            img.src = state[id+'-data'];
+                        }
+                    });
+                    if (document.getElementById('direct-purchase').checked) toggleDistributor();
+                    validateDuration(); syncAllMatrices();
+                } catch(err) { alert("Fehler beim Laden."); }
+            };
+            reader.readAsText(file);
         }
 
         window.onload = () => {
             const pGrid = document.getElementById('pouring-grid');
             const lGrid = document.getElementById('listing-grid');
-            pouringItems.forEach(item => { pGrid.innerHTML += `<div><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}"></div>`; });
-            listingItems.forEach(item => { lGrid.innerHTML += `<div><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}"></div>`; });
+            
+            pouringItems.forEach(item => { pGrid.innerHTML += `<div class="grid-item"><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}" onchange="syncAllMatrices()"></div>`; });
+            listingItems.forEach(item => { lGrid.innerHTML += `<div class="grid-item"><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}" onchange="syncAllMatrices()"></div>`; });
+            
             const rvBody = document.getElementById('rv-body');
             rvKPIs.forEach((item, i) => {
-                let tt = `<strong>Ziel:</strong> ${item.s1_qty} Einheiten<br>Fix: ${item.s1_val.toFixed(2)}€`;
-                if(item.s2_val) tt = `Stufe 1: ${item.s1_val.toFixed(2)}€ (ab ${item.s1_qty})<br>Stufe 2: ${item.s2_val.toFixed(2)}€ (ab ${item.s2_qty})`;
-                rvBody.innerHTML += `<tr><td>${item.name} <div class="info-container"><span class="info-icon">i</span><span class="tooltip">${tt}</span></div></td><td><input type="number" id="rv-qty-${i}" oninput="calcRV(${i})" placeholder="${item.s1_qty}"></td><td><select id="rv-unit-${i}" onchange="updateTotals()"><option value="1.0" ${item.unit=='1,0l'?'selected':''}>1,0l</option><option value="0.7" ${item.unit=='0,7l'?'selected':''}>0,7l</option><option value="0.5" ${item.unit=='0,5l'?'selected':''}>0,5l</option></select></td><td><input type="text" id="rv-price-${i}" oninput="calcRV(${i})"></td><td id="rv-total-pa-${i}" class="total-cell">0.00 €</td><td id="rv-total-dur-${i}" class="projection-cell">0.00 €</td></tr>`;
+                let tt = `<strong>Ziel:</strong> ${item.s1_qty} Flaschen<br>Fix: ${item.s1_val.toFixed(2)}€`;
+                if(item.s2_val) tt = `Stufe 1: ${item.s1_val.toFixed(2)}€ (ab ${item.s1_qty} Flaschen)<br>Stufe 2: ${item.s2_val.toFixed(2)}€ (ab ${item.s2_qty} Flaschen)`;
+                rvBody.innerHTML += `
+                    <tr id="rv-row-${i}" class="rv-row">
+                        <td>${item.name} <div class="info-container"><span class="info-icon">i</span><span class="tooltip">${tt}</span></div></td>
+                        <td><input type="number" id="rv-qty-${i}" oninput="calcRV(${i})" placeholder="${item.s1_qty}">${item.s2_val ? `<div class="progress-bg" id="rv-prog-bg-${i}"><div class="progress-bar" id="rv-prog-${i}"></div></div><div class="progress-text" id="rv-prog-txt-${i}"></div>` : ''}</td>
+                        <td><select id="rv-unit-${i}" onchange="updateTotals()"><option value="1.0" ${item.unit=='1,0l'?'selected':''}>1,0l</option><option value="0.7" ${item.unit=='0,7l'?'selected':''}>0,7l</option></select></td>
+                        <td><input type="text" id="rv-price-${i}" oninput="calcRV(${i})"></td>
+                        <td id="rv-total-pa-${i}" class="total-cell">0.00 €</td>
+                        <td id="rv-total-dur-${i}" class="projection-cell">0.00 €</td>
+                    </tr>`;
             });
+
             const wkzBody = document.getElementById('wkz-body');
-            for (let i = 0; i < 8; i++) {
-                wkzBody.innerHTML += `<tr><td><select id="wkz-select-${i}" onchange="updateWKZ(${i})"><option value="" disabled selected>Marke...</option>${Object.keys(wkzKPIs).map(k=>`<option value="${k}">${k}</option>`).join('')}</select><div id="wkz-info-cont-${i}" class="info-container hidden"><span class="info-icon">i</span><span class="tooltip" id="wkz-tip-${i}"></span></div></td><td><input type="text" id="wkz-task-${i}"></td><td><select><option>Nach Umsetzung</option><option>Bei Abschluss</option><option>Keine Abrechnung</option></select></td><td><input type="text" id="wkz-val-${i}" oninput="updateTotals()" placeholder="0.00"></td></tr>`;
-            }
-            restoreAutoSave(); attachAutoSave();
+            wkzItems.forEach((item, i) => {
+                let tt = `<strong>Ziel:</strong> ${item.goal}${item.note ? '<br><span style="color:var(--ww-orange)">' + item.note + '</span>' : ''}`;
+                wkzBody.innerHTML += `
+                    <tr id="wkz-row-${i}" class="wkz-row">
+                        <td>
+                            <strong style="color: var(--ww-green-dark); font-family: Montserrat;">${item.name}</strong>
+                            <div class="info-container"><span class="info-icon">i</span><span class="tooltip">${tt}</span></div>
+                            <span id="wkz-missing-${i}" class="missing-alert"></span>
+                        </td>
+                        <td><input type="text" id="wkz-task-${i}" value="${item.task}"></td>
+                        <td><select><option>Nach Umsetzung</option><option>Bei Abschluss</option></select></td>
+                        <td><input type="text" id="wkz-val-${i}" oninput="updateTotals()" value="${item.val.toFixed(2)}"></td>
+                    </tr>`;
+            });
+            
+            updateTotals();
         };
     </script>
 </body>
