@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Wein Wolf - Kooperationsvereinbarung v8.3 (Clean Print Edition)</title>
+    <title>Wein Wolf - Kooperationsvereinbarung v9.1 (Pro Edition)</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -11,11 +11,11 @@
             --ww-orange: #E45959; 
             --ww-border: #A3B5AD;
             --ww-error: #b32d2d;
+            --ww-success: #2e7d32;
             
-            /* CI-konforme Paket-Farben für das Upselling */
-            --pkg-gin: #E45959;     /* WW Orange */
-            --pkg-rum: #C77943;     /* Kupfer / Oak */
-            --pkg-whiskey: #38705C; /* Lighter WW Green / Sage */
+            --pkg-gin: #E45959;
+            --pkg-rum: #C77943;
+            --pkg-whiskey: #38705C;
         }
         * { box-sizing: border-box; font-family: 'Source Sans Pro', sans-serif; }
         body { line-height: 1.5; color: var(--ww-green-dark); margin: 40px; background-color: var(--ww-green-light); }
@@ -40,16 +40,12 @@
         .product-label { font-size: 8px; font-weight: 600; min-height: 24px; line-height: 1.1; text-transform: uppercase; }
         input[type="checkbox"] { cursor: pointer; accent-color: var(--ww-orange); }
 
-        /* Farb-Codiertes Highlighting System */
         .bottle-placeholder.highlight-target { border-width: 2px; border-style: solid; box-shadow: 0 0 12px rgba(0,0,0,0.08); background: rgba(255,255,255,0.4); }
         .bottle-placeholder.highlight-target::after { position: absolute; top: 0; right: 0; color: #fff; font-size: 7px; padding: 2px 4px; font-weight: 700; letter-spacing: 0.5px; content: attr(data-label); }
-        
         .bottle-placeholder.highlight-gin { border-color: var(--pkg-gin); }
         .bottle-placeholder.highlight-gin::after { background: var(--pkg-gin); }
-        
         .bottle-placeholder.highlight-rum { border-color: var(--pkg-rum); }
         .bottle-placeholder.highlight-rum::after { background: var(--pkg-rum); }
-        
         .bottle-placeholder.highlight-whiskey { border-color: var(--pkg-whiskey); }
         .bottle-placeholder.highlight-whiskey::after { background: var(--pkg-whiskey); }
 
@@ -59,18 +55,15 @@
         
         .rv-row, .wkz-row { display: none; }
         .rv-row.is-active, .wkz-row.is-active { display: table-row; }
-        
         .wkz-row.locked { opacity: 0.5; background: #f0f0f0; }
         .wkz-row.locked input { pointer-events: none; text-decoration: line-through; }
         .missing-alert { display: block; font-size: 10px; font-weight: bold; margin-top: 5px; line-height: 1.3; transition: color 0.3s; }
-
         tfoot td { background-color: #f9f9f9; font-weight: 700; border-top: 2px solid var(--ww-green-dark); }
 
         input[type="number"], input[type="text"], input[type="date"], input[type="email"], select, textarea { width: 95%; border: none; background: transparent; font-size: 13px; outline: none; color: var(--ww-green-dark); transition: background-color 0.3s, border-color 0.3s; }
         input::placeholder, textarea::placeholder { color: #bbb; font-style: italic; opacity: 0.6; }
-        
         .input-error { background-color: rgba(179, 45, 45, 0.1) !important; color: var(--ww-error) !important; border-bottom: 2px solid var(--ww-error) !important; }
-        .wrapper-error { border: 2px solid var(--ww-error) !important; background-color: rgba(179, 45, 45, 0.1) !important; }
+        .input-success { background-color: rgba(46, 125, 50, 0.1) !important; color: var(--ww-success) !important; border-bottom: 2px solid var(--ww-success) !important; font-weight: bold; }
         
         .total-cell { font-weight: 700; color: var(--ww-orange); text-align: right; }
         .projection-cell { font-weight: 600; color: var(--ww-green-dark); text-align: right; background: rgba(228, 89, 89, 0.05); }
@@ -78,10 +71,12 @@
         
         #grand-total-container { margin-top: 40px; padding: 25px; background: var(--ww-green-dark); color: #fff; display: flex; justify-content: space-between; align-items: center; border-left: 10px solid var(--ww-orange); }
 
-        .info-container { display: inline-block; position: relative; margin-left: 5px; cursor: help; vertical-align: middle; }
-        .info-icon { color: var(--ww-orange); font-weight: bold; border: 1px solid var(--ww-orange); border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; }
-        .tooltip { visibility: hidden; width: 220px; background: var(--ww-green-dark); color: #fff; border-radius: 4px; padding: 10px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; font-size: 10px; border-left: 3px solid var(--ww-orange); text-align: left; }
-        .info-container:hover .tooltip { visibility: visible; opacity: 1; }
+        /* iPad Optimiertes Tooltip System */
+        .info-container { display: inline-block; position: relative; margin-left: 5px; cursor: pointer; padding: 8px; margin-top: -5px; vertical-align: middle; }
+        .info-icon { color: var(--ww-orange); font-weight: bold; border: 1.5px solid var(--ww-orange); border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; transition: all 0.2s; pointer-events: none; }
+        .tooltip { visibility: hidden; width: 250px; background: var(--ww-green-dark); color: #fff; border-radius: 6px; padding: 12px; position: absolute; z-index: 100; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 11px; border-left: 4px solid var(--ww-orange); text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: normal; text-transform: none; }
+        .info-container.is-active .tooltip { visibility: visible; opacity: 1; }
+        .info-container.is-active .info-icon { background: var(--ww-orange); color: #fff; }
 
         .progress-bg { width: 95%; height: 5px; background: #e0e0e0; border-radius: 3px; margin-top: 6px; overflow: hidden; display: none; }
         .progress-bar { height: 100%; width: 0%; background: var(--ww-orange); transition: width 0.4s ease-out, background-color 0.4s; }
@@ -90,14 +85,12 @@
         .sig-wrapper { border: 1px solid var(--ww-orange); background: #fff; width: 100%; height: 120px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: all 0.3s; }
         .sig-wrapper span { font-size: 10px; color: var(--ww-border); text-transform: uppercase; font-weight: bold; }
         .sig-preview-canvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-
         #sig-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
         .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 95%; max-width: 900px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         #modal-canvas { border: 2px solid var(--ww-orange); background: #fff; width: 100%; height: 450px; touch-action: none; cursor: crosshair; }
         .modal-btns { margin-top: 25px; display: flex; justify-content: center; gap: 30px; }
         .btn-action { padding: 15px 40px; font-family: 'Montserrat'; font-weight: 700; text-transform: uppercase; border: none; cursor: pointer; border-radius: 4px; letter-spacing: 1px; transition: 0.3s; }
         .btn-save { background: var(--ww-orange); color: #fff; }
-        .btn-save:hover { background: #c94d4d; }
         .btn-clear { background: #eee; color: #333; }
 
         .custom-textarea { width: 100%; min-height: 100px; padding: 15px; border: 1px solid var(--ww-orange); background: #fff; resize: vertical; margin-top: 15px; }
@@ -109,16 +102,15 @@
         .hidden { display: none !important; }
         
         .print-btn { position: fixed; bottom: 30px; right: 30px; background-color: var(--ww-orange); color: #fff; border: none; padding: 15px 25px; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 4px; z-index: 1000; }
-        
         .action-container { text-align: center; margin-top: 80px; margin-bottom: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
         .util-btn { background: transparent; border: 2px solid var(--ww-border); padding: 10px 20px; color: var(--ww-green-dark); font-family: 'Montserrat', sans-serif; font-size: 10px; text-transform: uppercase; font-weight: 700; cursor: pointer; border-radius: 4px; transition: all 0.3s; letter-spacing: 1px; }
-        .util-btn:hover { background: rgba(163, 181, 173, 0.2); }
         .reset-all-btn { border-color: var(--ww-error); color: var(--ww-error); }
-        .reset-all-btn:hover { background: rgba(179, 45, 45, 0.1); }
+
+        .wkz-notice { font-size: 11px; background: rgba(228, 89, 89, 0.1); border-left: 3px solid var(--ww-orange); padding: 8px; margin-top: 5px; display: inline-block; }
 
         @media print { 
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; margin: 0; }
-            .clear-btn, .print-btn, .info-container, .print-hide, .action-container { display: none !important; }
+            .print-btn, .info-container, .print-hide, .action-container { display: none !important; }
             input, select, textarea { border: none !important; outline: none !important; background: transparent !important; }
             .line-input { border-bottom: 1px solid #000 !important; }
             .custom-textarea { border: 1px solid var(--ww-border) !important; }
@@ -126,15 +118,13 @@
             .rv-row, .wkz-row { display: none; }
             .rv-row.is-active, .wkz-row.is-active { display: table-row !important; }
             .missing-alert { display: none !important; } 
-            
-            /* Clean Print CSS Fallback (JS handles the main logic) */
             .grid-item:not(:has(input:checked)) { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-    <button type="button" class="print-btn print-hide" onclick="triggerPrint()">Dokument Drucken / PDF Erstellen</button>
+    <button type="button" class="print-btn print-hide" onclick="triggerPrint()">Dokument Drucken</button>
 
     <div id="sig-modal" class="print-hide">
         <div class="modal-content">
@@ -142,17 +132,15 @@
             <canvas id="modal-canvas"></canvas>
             <div class="modal-btns">
                 <button type="button" class="btn-action btn-clear" onclick="clearModalCanvas()">Löschen</button>
-                <button type="button" class="btn-action btn-save" onclick="saveSignature()">In Vertrag übernehmen</button>
+                <button type="button" class="btn-action btn-save" onclick="saveSignature()">Übernehmen</button>
             </div>
         </div>
     </div>
 
     <div class="header">
-        <div class="logo-area">
-            <img src="https://www.weinwolf.de/bundles/weinwolftheme/storefront/img/logo_header.svg?17144500985059" alt="WEIN WOLF">
-        </div>
+        <div class="logo-area"><img src="https://www.weinwolf.de/bundles/weinwolftheme/storefront/img/logo_header.svg" alt="WEIN WOLF"></div>
         <h1>Kooperationsvereinbarung</h1>
-        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v8.3 CLEAN PRINT</div>
+        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v9.1 PRO iPAD EDITION</div>
     </div>
 
     <div class="partner-section">
@@ -161,8 +149,7 @@
             <div class="partner-info">
                 <strong>Wein Wolf GmbH</strong><br>
                 <input type="text" id="ww-employee-name" class="line-input" placeholder="Name des AD-Mitarbeiters" style="margin-bottom: 10px; margin-top: 5px;"><br>
-                Königswinterer Str. 552<br>
-                53227 Bonn
+                Königswinterer Str. 552<br>53227 Bonn
             </div>
         </div>
         <div class="partner-box">
@@ -171,14 +158,13 @@
                 <input type="text" id="partner-name" class="line-input" placeholder="Name der Firma / Inhaber">
                 <input type="email" id="partner-email" class="line-input print-hide" placeholder="E-Mail Adresse für interne Ablage" style="margin-top: 10px;">
                 <input type="text" id="partner-kundennummer" class="line-input" placeholder="Kundennummer" style="margin-top: 10px;">
-                <div style="font-size: 10px; color: #888; margin-top: 5px;">(nachfolgend "Partner" genannt)</div>
             </div>
         </div>
     </div>
 
     <div class="partner-box" style="margin-bottom: 25px;">
         <div class="partner-label">Outlets</div>
-        <input type="text" id="partner-outlets" class="line-input" placeholder="Standorte (kommagetrennt für mehrere Outlets)">
+        <input type="text" id="partner-outlets" class="line-input" placeholder="Standorte (kommagetrennt)">
     </div>
     
     <div class="section">
@@ -222,16 +208,20 @@
         <thead>
             <tr>
                 <th style="width: 25%;">Marke / Paket</th>
-                <th style="width: 40%;">Maßnahme</th>
-                <th style="width: 20%;">Abrechnung</th>
+                <th style="width: 30%;">Maßnahme</th>
+                <th style="width: 15%;">Menge (Fl.)</th>
+                <th style="width: 15%;">Abrechnung</th>
                 <th style="width: 15%;">Vergütung (€)</th>
             </tr>
         </thead>
         <tbody id="wkz-body"></tbody>
         <tfoot>
-            <tr><td colspan="3" style="text-align:right;">Zwischensumme WKZ:</td><td class="total-cell" id="subtotal-wkz">0.00 €</td></tr>
+            <tr><td colspan="4" style="text-align:right;">Zwischensumme WKZ:</td><td class="total-cell" id="subtotal-wkz">0.00 €</td></tr>
         </tfoot>
     </table>
+    <div class="wkz-notice">
+        <strong>Achtung:</strong> Werbekostenzuschüsse (WKZ) werden maximal einmalig pro 12 Monate gewährt. Bei Vertragslaufzeiten unter 12 Monaten ist für die Auszahlung die Erfüllung der <strong>kompletten Jahreszielmenge (100 %)</strong> zwingend erforderlich.
+    </div>
 
     <div id="grand-total-container">
         <div>
@@ -248,7 +238,6 @@
         <strong>§1</strong> Der Partner wird die vereinbarten Produkte im Vertragszeitraum und bis zur vereinbarten Zielmenge ausschenken, auf der Getränkekarte listen, sowie in der Bar sichtbar präsentieren.<br><br>
         <strong>§2</strong> Die Abrechnung der Rückvergütungen erfolgt jährlich nach Erfüllung (mind. 80 % der Gesamt-Zielmenge) der Zielmengen gegen Rechnung und Bezugsnachweis über den Fachgroßhändler.<br><br>
         <strong>§3</strong> Sollte die Zielmenge nicht erreicht werden verlängert sich die Vereinbarung einmalig um weitere 12 Monate.<br><br>
-        
         <div style="display: flex; align-items: center; margin-top: 15px;">
             <strong style="margin-right: 10px;">Bezugsweg:</strong> 
             <input type="text" id="distributor-name" style="width: 45%; border-bottom: 2px solid var(--ww-orange);" placeholder="Fachgroßhändler inkl. Kundennummer">
@@ -288,130 +277,134 @@
     </div>
 
     <script>
+        function toggleTooltip(el, e) {
+            e.stopPropagation();
+            const isActive = el.classList.contains('is-active');
+            document.querySelectorAll('.info-container').forEach(c => c.classList.remove('is-active'));
+            if(!isActive) el.classList.add('is-active');
+        }
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.info-container').forEach(c => c.classList.remove('is-active'));
+        });
+
         const matrixMap = {
-            "pour-0": [0, 1], "pour-1": [3], "pour-2": [2], "pour-3": [10], "pour-4": [9],
-            "pour-6": [8], "pour-7": [20], "pour-8": [5], "list-0": [7], "list-1": [7],
-            "list-2": [15], "list-3": [16], "list-4": [13], "list-5": [19], "list-6": [6],
-            "list-8": [21], "list-9": [4], "list-10": [11], "list-11": [22], "list-12": [17], "list-13": [12]
+            "pour-0": [0], "pour-1": [3], "pour-2": [2], "pour-3": [10], "pour-4": [9],
+            "pour-6": [8], "pour-8": [5], "pour-9": [1], 
+            "list-0": [7], "list-1": [7], "list-2": [15], "list-3": [16], "list-4": [13], 
+            "list-5": [19], "list-6": [6], "list-7": [6], "list-8": [21], "list-9": [4], 
+            "list-10": [11], "list-11": [22], "list-12": [17], "list-13": [12], "list-14": [12], 
+            "list-17": [9], "list-18": [14], "list-19": [18], "list-20": [23], 
+            "list-21": [24], "list-22": [25], "list-23": [27], "list-24": [20], "list-25": [9], "list-26": [26]
         };
 
+        // WKZ Data with explicit minimum targets for validation
         const wkzItems = [
-            { name: "Benvenuti Limoncello", req: ["list-4"], val: 200, task: "Limoncello Switch", goal: "100 Flaschen", note: "", label: "", cssClass: "" },
-            { name: "Cucielo Vermouth", req: ["list-5"], val: 250, task: "Vermouth Switch", goal: "75 Flaschen", note: "", label: "", cssClass: "" },
-            { name: "Disaronno Originale", req: ["list-0"], val: 100, task: "Cocktail Drink Activation Disaronno Sour etc.", goal: "100 Flaschen", note: "Wichtig: Drink Aktivierung", label: "", cssClass: "" },
-            { name: "Tia Maria Switch", req: ["pour-7"], val: 300, task: "Kaffeelikör Switch", goal: "100 Flaschen", note: "", label: "", cssClass: "" },
-            { name: "Angostura Bitters", req: ["list-17"], val: 100, task: "Listung & Aktivierung Bitters Range (3 Qualitäten) + 1919", goal: "je 12 Flaschen", note: "Wichtig: Drink Aktivierung", label: "", cssClass: "" },
-            { name: "Gin Package", req: ["list-8", "list-7", "pour-8"], val: 1500, task: "Listung Engine / Macaronesian / Martin Millers", goal: "150 Flaschen", note: "(3/3 Gelistet)", label: "ZIEL: GIN", cssClass: "highlight-gin" },
-            { name: "Rum Combi Strategy", req: ["pour-2", "pour-4", "pour-3", "pour-5"], val: 150, task: "Listung Pampero / Angostura 3Y / Myers's plus Drink 1919", goal: "100 Flaschen", note: "Wichtig: Drink Aktivierung", label: "ZIEL: RUM", cssClass: "highlight-rum" },
-            { name: "Whiskey Combi Strategy", req: ["list-9", "list-10", "list-11", "pour-1"], val: 150, task: "Listung Sazerac / Eagle Rare / The Busker / Buffalo Trace", goal: "100 Flaschen", note: "Wichtig: Drink Aktivierung", label: "ZIEL: WHISKEY", cssClass: "highlight-whiskey" }
+            { name: "Benvenuti Limoncello", art: "230028", req: ["list-4"], val: 200, task: "Limoncello Switch", minQty: 100, note: "", label: "", cssClass: "" },
+            { name: "Cucielo Vermouth", art: "814003", req: ["list-5"], val: 250, task: "Vermouth Switch", minQty: 75, note: "", label: "", cssClass: "" },
+            { name: "Disaronno Originale", art: "713127", req: ["list-0"], val: 100, task: "Cocktail Drink Activation", minQty: 100, note: "Wichtig: Drink Aktivierung", label: "", cssClass: "" },
+            { name: "Tia Maria Switch", art: "713109", req: ["list-24"], val: 300, task: "Kaffeelikör Switch", minQty: 100, note: "", label: "", cssClass: "" },
+            { name: "Angostura Bitters", art: "710102", req: ["list-17", "list-25"], val: 100, task: "Listung & Aktivierung Bitters Range + 1919", minQty: 36, note: "Wichtig: Drink Aktivierung (je 12 Fl.)", label: "", cssClass: "" },
+            { name: "Gin Package", art: "xxxxx (Paket)", req: ["list-8", "list-7", "pour-8"], val: 1500, task: "Listung Engine / Macaronesian / Martin Millers", minQty: 150, note: "(3/3 Gelistet)", label: "ZIEL: GIN", cssClass: "highlight-gin" },
+            { name: "Rum Combi Strategy", art: "xxxxx (Paket)", req: ["pour-2", "pour-4", "pour-3", "list-25"], val: 150, task: "Listung Pampero / Angostura 3Y / Myers's plus Drink 1919", minQty: 100, note: "Wichtig: Drink Aktivierung", label: "ZIEL: RUM", cssClass: "highlight-rum" },
+            { name: "Whiskey Combi Strategy", art: "xxxxx (Paket)", req: ["list-9", "list-10", "list-11", "pour-1"], val: 150, task: "Listung Sazerac / Eagle Rare / The Busker / Buffalo Trace", minQty: 100, note: "Wichtig: Drink Aktivierung", label: "ZIEL: WHISKEY", cssClass: "highlight-whiskey" }
         ];
 
         const pouringItems = [
-            { id: "pour-0", name: "Zubrowka", img: "https://www.weinwolf.de/thumbnail/e1/26/2b/1742828743/825000_2412_1920x1920.webp" },
-            { id: "pour-1", name: "Buffalo Trace", img: "https://www.weinwolf.de/thumbnail/cb/2d/c9/1755504318/860001_2508_1920x1920.webp" },
-            { id: "pour-2", name: "Pampero", img: "https://www.weinwolf.de/thumbnail/01/a5/f6/1738071343/240001_2501_1920x1920.webp" },
-            { id: "pour-3", name: "Myers's Rum", img: "https://www.weinwolf.de/thumbnail/5e/d2/e1/1741273522/860004_2407_1920x1920.webp" },
-            { id: "pour-4", name: "Angostura 3Y", img: "https://www.weinwolf.de/thumbnail/a1/a3/69/1773129956/710218_2508_1920x1920.webp" },
-            { id: "pour-5", name: "Angostura 1919", img: "https://www.weinwolf.de/thumbnail/63/47/7c/1773129955/710209_2510_MitGP_1920x1920.webp" },
-            { id: "pour-6", name: "Lunazul Tequila", img: "https://www.weinwolf.de/thumbnail/7d/02/09/1717246215/833000_2301_1920x1920.png" },
-            { id: "pour-7", name: "Tia Maria", img: "https://www.weinwolf.de/thumbnail/a2/de/c0/1724922342/713109_2408_1920x1920.png" },
-            { id: "pour-8", name: "Martin Miller's", img: "https://www.weinwolf.de/thumbnail/f1/7e/26/1769164529/009500_2601_1920x1920.webp" }
+            { id: "pour-0", name: "Zubrowka Biala", img: "https://www.weinwolf.de/thumbnail/e1/26/2b/1742828743/825000_2412_1920x1920.webp", desc: "Die unverkennbare polnische Herkunft von Zubrowka Biala liegt im sagenumwobenen Białowieza Wald, welcher sich im Osten über rund 1.500qm an der Grenze zwischen Polen und Weißrussland erstreckt. Er ist die Heimat der Bisons, die gleichzeitig auch das Symbol der Marke sind. Zubrowka Biala ist das Ergebnis einer über 500-jährigen Tradition, in der die Natürlichkeit des Waldes widergespiegelt wird. Es ist ein Vodka, der sich unkompliziert und natürlich präsentiert und die Welt der unzugänglichen, schneebedeckten Gebiete des Waldes offenbart. Er spiegelt die Kraft und die Vitalität der Bisons mit seinem einzigartigen Geschmack wider. Für die Herstellung findet ausschließlich Wasser einer schwer zugänglichen Quelle in der Nähe des Waldes und feinstes Getreide Verwendung. Hierdurch entsteht ein kristallklarer, sanfter Vodka, veredelt durch eine 7-fache Destillation und 4-fache Filtration." },
+            { id: "pour-9", name: "Zubrowka Czarna", img: "https://www.weinwolf.de/thumbnail/a4/69/c3/1766133329/825032_2512_1920x1920.webp", desc: "Żubrówka Czarna ist ein Premium-Weizenwodka, der seinen milden Geschmack dem Reichtum der Natur verdankt. Die Komposition basiert auf einer Kombination aus exzellentem polnischem Weizendestillat und Wasser aus den reinsten Quellen des Białowieża-Urwalds. Sein endgültiger Charakter entsteht jedoch während der Filtration über Eichenholzkohle." },
+            { id: "pour-1", name: "Buffalo Trace", img: "https://www.weinwolf.de/thumbnail/cb/2d/c9/1755504318/860001_2508_1920x1920.webp", desc: "Der Kentucky Straight Bourbon Buffalo Trace zeichnet sich durch seine ausgeprägte Süße aus, die auf den hohen Anteil von Mais zurückzuführen ist. Nach einer mindestens siebenjährigen Reifung in stark ausgekohlten Fässern entwickelt der Whiskey ein intensives und ausgewogenes Aroma." },
+            { id: "pour-2", name: "Pampero", img: "https://www.weinwolf.de/thumbnail/01/a5/f6/1738071343/240001_2501_1920x1920.webp", desc: "In ehemaligen Scotch-Whiskey-Fässern gereift und aus über 40 verschiedenen Fässern gemischt, vereint er leichte, schwere und halbschwere Rumsorten für eine außergewöhnliche Qualität und Tiefe." },
+            { id: "pour-3", name: "Myers's Rum", img: "https://www.weinwolf.de/thumbnail/5e/d2/e1/1741273522/860004_2407_1920x1920.webp", desc: "Myers’s ist eine Mischung aus Pot-Still- und Column-Still-Rums aus Jamaika, die meisterhaft destilliert werden, um die vertrauenswürdige Qualität zu liefern. Butterige Noten entfalten sich beim ersten Schluck, gefolgt von süßem Zuckerrohr, Karamell, Tabak und Leder." },
+            { id: "pour-4", name: "Angostura 3Y", img: "https://www.weinwolf.de/thumbnail/a1/a3/69/1773129956/710218_2508_1920x1920.webp", desc: "Der Angostura 3 Jahre White Rum zeichnet sich durch einen eleganten und klaren Geschmack aus. Hergestellt auf Trinidad & Tobago, ist er ein leichter Rum. Die Lagerung in alten Bourbon-Fässern aus amerikanischer Eiche verleiht ihm eine feine Note." },
+            { id: "pour-6", name: "Lunazul Tequila", img: "https://www.weinwolf.de/thumbnail/7d/02/09/1717246215/833000_2301_1920x1920.png", desc: "Der Lunazul Tequila Blanco repräsentiert einen makellosen kristallklaren Tequila, der aus einer langen Familientradition hervorgegangen ist. Die Herstellung von hundertprozentigen Agaven-Tequilas in kleinen Chargen." },
+            { id: "pour-8", name: "Martin Miller's", img: "https://www.weinwolf.de/thumbnail/f1/7e/26/1769164529/009500_2601_1920x1920.webp", desc: "Martin Miller’s Original Gin wird nach den besten englischen Destillationstraditionen hergestellt – neu interpretiert mit einem modernen Ansatz. Florale Noten in der Nase, lebendige Zitrusaromen am Gaumen, die nahtlos in einen ausgewogenen Wacholdercharakter übergehen." }
         ];
 
         const listingItems = [
-            { id: "list-0", name: "Disaronno", img: "https://www.weinwolf.de/thumbnail/76/3a/b7/1743665748/713127_2408_1920x1920.webp" }, 
-            { id: "list-1", name: "Disaronno Velvet", img: "https://www.weinwolf.de/thumbnail/0f/99/92/1755091842/713126_2408_1920x1920.webp" }, 
-            { id: "list-2", name: "Amaro Montenegro", img: "https://www.weinwolf.de/thumbnail/a0/63/27/1731503247/200054_2302_1920x1920.png" },
-            { id: "list-3", name: "Select Aperitivo", img: "https://www.weinwolf.de/thumbnail/72/c5/04/1726828127/200038_1908_1920x1920.png" }, 
-            { id: "list-4", name: "Benvenuti Limoncello", img: "https://www.weinwolf.de/thumbnail/b7/52/50/1741260963/230028_2503_1920x1920.webp" }, 
-            { id: "list-5", name: "Cucielo Vermouth", img: "https://www.weinwolf.de/thumbnail/92/72/72/1717244627/814004_2106_1920x1920.png" },
-            { id: "list-6", name: "Whitley Neill", img: "https://www.weinwolf.de/thumbnail/18/2c/90/1762875323/813010_2511_1920x1920.webp" }, 
-            { id: "list-7", name: "Macaronesian Gin", img: "https://www.weinwolf.de/thumbnail/f4/ef/60/1765184721/006151_2512_1920x1920.webp" }, 
-            { id: "list-8", name: "Engine Gin", img: "https://www.weinwolf.de/thumbnail/5b/e4/36/1721218031/713108_2407_1920x1920.png" },
-            { id: "list-9", name: "Sazerac Rye", img: "https://www.weinwolf.de/thumbnail/e6/f0/f3/1721916351/860006_2407_1920x1920.png" }, 
-            { id: "list-10", name: "Eagle Rare", img: "https://www.weinwolf.de/thumbnail/c9/77/63/1721916351/860005_2407_1920x1920.png" }, 
-            { id: "list-11", name: "The Busker", img: "https://www.weinwolf.de/thumbnail/dd/92/b6/1721218029/713134_2407_1920x1920.png" },
-            { id: "list-12", name: "Botran 12", img: "https://www.weinwolf.de/thumbnail/91/7e/37/1717246648/719119_2402_1920x1920.png" }, 
-            { id: "list-13", name: "Romana Sambuca", img: "https://www.weinwolf.de/thumbnail/eb/d6/66/1752048327/860011_2507_1920x1920.webp" }, 
-            { id: "list-14", name: "Becherovka", img: "https://www.weinwolf.de/thumbnail/6e/e3/eb/1721210747/825007_2407_1920x1920.png" },
-            { id: "list-15", name: "Sober Spirits", img: "https://www.weinwolf.de/thumbnail/c9/12/b7/1739356548/853001_2502_1920x1920.webp" }, 
-            { id: "list-16", name: "Dr. Jaglas", img: "https://www.weinwolf.de/thumbnail/15/4d/f2/1769164530/812027_2601_1920x1920.webp" }, 
-            { id: "list-17", name: "Angostura Bitter", img: "https://www.weinwolf.de/thumbnail/f0/cc/f6/1717244522/710102_2105_1920x1920.png" }
+            { id: "list-0", name: "Disaronno", img: "https://www.weinwolf.de/thumbnail/76/3a/b7/1743665748/713127_2408_1920x1920.webp", desc: "Disaronno Originale, entstanden im Jahr 1525, ist ein italienischer Likörklassiker mit unverwechselbarem, mandelartigem Aroma und feiner Süße. Pur auf Eis oder in Signature Cocktails wie dem Disaronno Sour entfaltet er sein volles Aroma." }, 
+            { id: "list-1", name: "Disaronno Velvet", img: "https://www.weinwolf.de/thumbnail/0f/99/92/1755091842/713126_2408_1920x1920.webp", desc: "Disaronno Velvet ist die sanft-cremige Interpretation des legendären italienischen Likörs und bringt mediterrane Leichtigkeit ins Glas. Er verbindet den ikonischen Disaronno-Geschmack mit einer feinen, samtigen Textur." }, 
+            { id: "list-2", name: "Amaro Montenegro", img: "https://www.weinwolf.de/thumbnail/a0/63/27/1731503247/200054_2302_1920x1920.png", desc: "Amaro Montenegro entfaltet ein faszinierendes Kräuteraroma, das an Majoran und Thymian erinnert und durch würzig-balsamische Nuancen von Weihrauch und Eukalyptus ergänzt wird." },
+            { id: "list-3", name: "Select Aperitivo", img: "https://www.weinwolf.de/thumbnail/72/c5/04/1726828127/200038_1908_1920x1920.png", desc: "Ein Bitterlikör aus 30 aromatischen Kräutern. Darunter Wachholderbeeren mit ihren balsamischen, floralen und erdigen Noten sowie Rhabarberwurzeln, die eine intensiv herbe Note beitragen." }, 
+            { id: "list-4", name: "Benvenuti Limoncello", img: "https://www.weinwolf.de/thumbnail/b7/52/50/1741260963/230028_2503_1920x1920.webp", desc: "Benvenuti Limoncello wird aus feinen sizilianischen Zitronen hergestellt, die noch von kleinen Erzeugern handverlesen werden. Ein perfektes Gleichgewicht von Süße, Säure und Bitterkeit." }, 
+            { id: "list-5", name: "Cucielo Vermouth", img: "https://www.weinwolf.de/thumbnail/92/72/72/1717244627/814004_2106_1920x1920.png", desc: "Der Vermouth Rosso Cucielo besticht durch ein intensives Aroma, das karamellisierte Orangen und Rhabarber in harmonischer Verbindung mit würzigen Noten präsentiert." },
+            { id: "list-6", name: "Whitley Neill", img: "https://www.weinwolf.de/thumbnail/18/2c/90/1762875323/813010_2511_1920x1920.webp", desc: "Der Whitley Neill Distillers Cut Gin zeigt einen klassischen London Dry Stil mit ausgeprägten Wacholdernoten, ergänzt durch die fruchtige Frische getrockneter Orangenschalen." }, 
+            { id: "list-7", name: "Macaronesian Gin", img: "https://www.weinwolf.de/thumbnail/f4/ef/60/1765184721/006151_2512_1920x1920.webp", desc: "Kanarischer Gin, der mit in Vulkangestein gefiltertem Regenwasser und mit Botanikern von den Kanarischen Inseln hergestellt wird. Ein Super-Premium-Gin mit unendlicher Wasserreinheit!" }, 
+            { id: "list-8", name: "Engine Gin", img: "https://www.weinwolf.de/thumbnail/5b/e4/36/1721218031/713108_2407_1920x1920.png", desc: "100% italienischer Bio-Gin, handgefertigt in Italien mit Salbei und Rosenblättern aus dem Piemont, sizilianischen Zitronen, Wacholder aus der Toskana. Verkauft in einer ikonischen Blechdose." },
+            { id: "list-9", name: "Sazerac Rye", img: "https://www.weinwolf.de/thumbnail/e6/f0/f3/1721916351/860006_2407_1920x1920.png", desc: "Der Rye Whiskey beeindruckt mit süßen Malzdüften, saftigen Orangen, Nelken, Anis und Bourbonvanille in der Nase. Am Gaumen entfaltet er eine dichte Textur mit kraftvollen Getreidenoten." }, 
+            { id: "list-10", name: "Eagle Rare", img: "https://www.weinwolf.de/thumbnail/c9/77/63/1721916351/860005_2407_1920x1920.png", desc: "Der seltene Adler reift 10 Jahre lang in seinem neuen Weißeichefass. Der Adler besticht durch dichte Vanillenoten in der Nase, untermalt von Karamell, Nüssen und Honig." }, 
+            { id: "list-11", name: "The Busker", img: "https://www.weinwolf.de/thumbnail/dd/92/b6/1721218029/713134_2407_1920x1920.png", desc: "The Busker Triple Cask Triple Smooth ist ein außergewöhnlicher Blend aus hochwertigem Single Grain und einem sehr hohen Anteil an Single Malt und Single Pot Still. Sein Körper ist unverkennbar vollmundig." },
+            { id: "list-12", name: "Botran 12", img: "https://www.weinwolf.de/thumbnail/91/7e/37/1717246648/719119_2402_1920x1920.png", desc: "Hochwertiger gereifter Rum aus Guatemala, destilliert aus Virgin Sugar Cane Honey. Weich, komplex und ideal für Premium-Cocktails." }, 
+            { id: "list-13", name: "Romana Sambuca", img: "https://www.weinwolf.de/thumbnail/eb/d6/66/1752048327/860011_2507_1920x1920.webp", desc: "Ein authentischer italienischer Sambuca, berühmt für sein weiches Profil und die klassischen Anis-Noten. Wird traditionell 'con la mosca' (mit Kaffeebohnen) genossen." }, 
+            { id: "list-14", name: "Becherovka", img: "https://www.weinwolf.de/thumbnail/6e/e3/eb/1721210747/825007_2407_1920x1920.png", desc: "Tschechischer Premium-Kräuterlikör, hergestellt nach einer geheimen Rezeptur aus dem Jahr 1807. Bekannt für seine ausgleichenden Noten von Nelken, Zimt und Gewürzen." },
+            { id: "list-15", name: "Sober Spirits", img: "https://www.weinwolf.de/thumbnail/c9/12/b7/1739356548/853001_2502_1920x1920.webp", desc: "Alkoholfreie Spirituosen-Alternative der Extraklasse. Perfekt, um die Intensität und das Aroma klassischer Drinks ohne Alkohol zu erleben." }, 
+            { id: "list-16", name: "Dr. Jaglas", img: "https://www.weinwolf.de/thumbnail/15/4d/f2/1769164530/812027_2601_1920x1920.webp", desc: "Apotheker-Kräuterbitter mit Tradition. Handgemacht nach historischen Rezepturen, balanciert mit erlesenen Kräutern, Wurzeln und Blüten." }, 
+            { id: "list-17", name: "Angostura Bitter", img: "https://www.weinwolf.de/thumbnail/f0/cc/f6/1717244522/710102_2105_1920x1920.png", desc: "Der unverzichtbare Klassiker hinter jeder Bar. Wenige Tropfen dieses aromatischen Bitters verleihen Cocktails Tiefe und Komplexität." },
+            { id: "list-18", name: "Rutte Gin", img: "", desc: "Niederländischer Premium-Gin mit langer Handwerkstradition. Perfekte Balance aus klassischen Botanicals." },
+            { id: "list-19", name: "Tamboo Spiced", img: "", desc: "Ein facettenreicher Spiced Rum, abgerundet mit karibischen Gewürzen. Ideal zum Mixen." },
+            { id: "list-20", name: "Corazon Tequila", img: "", desc: "Handwerklicher Tequila aus 100% blauer Weberagave. Authentisch und charakterstark." },
+            { id: "list-21", name: "De Kuyper Liköre", img: "https://www.weinwolf.de/thumbnail/7e/20/6c/1717246871/807056_2207_800x800.png", desc: "DATEN FEHLEN (exkl. Grenadine)" },
+            { id: "list-22", name: "De Kuyper Prebatched", img: "", desc: "DATEN FEHLEN" },
+            { id: "list-23", name: "De Kuyper Sirup", img: "https://www.weinwolf.de/thumbnail/89/9f/32/1717244808/807005_2112Kopie_800x800.png", desc: "DATEN FEHLEN (exkl. Grenadine)" },
+            { id: "list-24", name: "Tia Maria", img: "https://www.weinwolf.de/thumbnail/a2/de/c0/1724922342/713109_2408_1920x1920.png", desc: "Tia Maria entfaltet die Aromen der Karibik. Hergestellt von Illva Saronno, verbindet dieser Likör besten 100% Arabica-Kaffee mit einer sanften Vanillenote und jamaikanischem Rum. Die reiche Intensität des gerösteten Kaffees harmoniert mit den süßen und komplexen Rumnoten. Die Wurzeln dieser Rezeptur basieren auf einem alten jamaikanischen Familienrezept, das über Generationen hinweg weitergegeben wurde. Illva Saronno ist zudem für den Amaretto „Disaronno“ bekannt." },
+            { id: "list-25", name: "Angostura 1919", img: "https://www.weinwolf.de/thumbnail/63/47/7c/1773129955/710209_2510_MitGP_1920x1920.webp", desc: "In der Nase vielschichtig mit verführerischen Noten von Kokos, Karamell und Vanille. Am Gaumen sehr weich mit warmen Aromen von Schokolade, Nugat, Mandelcreme und Honig, wunderschöne Länge mit zartem Schmelz." },
+            { id: "list-26", name: "Peachtree", img: "https://www.weinwolf.de/thumbnail/ea/3b/31/1717244593/807010_2112_800x800.png", desc: "Weich und fruchtig erscheint diese Spirituose am Gaumen. Neben einer feinen Süße ist ein schmeichelhaftes Wechselspiel von bittereren wie auch erfrischend sauren Aromen zu verspüren. Ein absoluter Klassiker!" }
         ];
 
         const rvKPIs = [
-            { name: "Zubrowka Biala Vodka", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
-            { name: "Zubrowka Czarna Vodka 40%", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 150 },
-            { name: "Pampero Blanco & Especial", unit: "1,0l", s1_val: 0.50, s1_qty: 100, s2_val: 2.00, s2_qty: 300 },
-            { name: "Buffalo Trace Bourbon", unit: "1,0l", s1_val: 2.00, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
-            { name: "Sazerac Rye", unit: "0,7l", s1_val: 1.50, s1_qty: 50, s2_val: 2.50, s2_qty: 150 },
-            { name: "Martin Millers Gin", unit: "1,0l", s1_val: 2.50, s1_qty: 100, s2_val: 5.00, s2_qty: 200 },
-            { name: "Whitley Neill Range", unit: "0,7l", s1_val: 1.00, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
-            { name: "Disaronno Originale & Velvet", unit: "1,0l", s1_val: 1.00, s1_qty: 50, s2_val: 1.50, s2_qty: 200 },
-            { name: "Lunazul Tequila", unit: "0,7l", s1_val: 1.00, s1_qty: 50, s2_val: 1.20, s2_qty: 100 },
-            { name: "Angostura Rum", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
-            { name: "Myers's Rum", unit: "1,0l", s1_val: 1.00, s1_qty: 50 },
-            { name: "Eagle Rare", unit: "0,7l", s1_val: 2.00, s1_qty: 50 },
-            { name: "Romana Sambuca", unit: "1,0l", s1_val: 0.50, s1_qty: 50 },
-            { name: "Benvenuti Limoncello", unit: "0,7l", s1_val: 0.50, s1_qty: 50 },
-            { name: "Rutte Gin", unit: "0,7l", s1_val: 0.50, s1_qty: 50 },
-            { name: "Amaro Montenegro", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
-            { name: "Select Aperitivo", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
-            { name: "Botran Rum", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
-            { name: "Tamboo Spiced", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
-            { name: "Cucielo Vermouth", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
-            { name: "Tia Maria", unit: "0,7l", s1_val: 1.00, s1_qty: 100 },
-            { name: "Engine Gin", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
-            { name: "The Busker", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
-            { name: "Corazon Tequila", unit: "0,7l", s1_val: 1.00, s1_qty: 50 }
+            { name: "Zubrowka Biala Vodka", art: "825002", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
+            { name: "Zubrowka Czarna Vodka 40%", art: "825032", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 150 },
+            { name: "Pampero Blanco & Especial", art: "240003", unit: "1,0l", s1_val: 0.50, s1_qty: 100, s2_val: 2.00, s2_qty: 300 },
+            { name: "Buffalo Trace Bourbon", art: "860001", unit: "1,0l", s1_val: 2.00, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
+            { name: "Sazerac Rye", art: "860006", unit: "0,7l", s1_val: 1.50, s1_qty: 50, s2_val: 2.50, s2_qty: 150 },
+            { name: "Martin Millers Gin", art: "009500", unit: "1,0l", s1_val: 2.50, s1_qty: 100, s2_val: 5.00, s2_qty: 200 },
+            { name: "Whitley Neill Range", art: "813045", unit: "0,7l", s1_val: 1.00, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
+            { name: "Disaronno Originale & Velvet", art: "713127", unit: "1,0l", s1_val: 1.00, s1_qty: 50, s2_val: 1.50, s2_qty: 200 },
+            { name: "Lunazul Tequila", art: "833000", unit: "0,7l", s1_val: 1.00, s1_qty: 50, s2_val: 1.20, s2_qty: 100 },
+            { name: "Angostura Rum", art: "710293", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
+            { name: "Myers's Rum", art: "860004", unit: "1,0l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Eagle Rare", art: "860005", unit: "0,7l", s1_val: 2.00, s1_qty: 50 },
+            { name: "Romana Sambuca", art: "860011", unit: "1,0l", s1_val: 0.50, s1_qty: 50 },
+            { name: "Benvenuti Limoncello", art: "230028", unit: "0,7l", s1_val: 0.50, s1_qty: 50 },
+            { name: "Rutte Gin", art: "807097", unit: "0,7l", s1_val: 0.50, s1_qty: 50 },
+            { name: "Amaro Montenegro", art: "200054", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Select Aperitivo", art: "200038", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Botran Rum", art: "719119", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Tamboo Spiced", art: "710109", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Cucielo Vermouth", art: "814003", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Tia Maria", art: "713109", unit: "0,7l", s1_val: 1.00, s1_qty: 100 },
+            { name: "Engine Gin", art: "713108", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "The Busker", art: "713134", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Corazon Tequila", art: "860008", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "De Kuyper Liköre", art: "807020", unit: "0,7l", s1_val: 0.50, s1_qty: 200 },
+            { name: "De Kuyper Prebatched", art: "807078", unit: "1,0l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Peachtree", art: "807010", unit: "0,7l", s1_val: 0.50, s1_qty: 100, s2_val: 1.00, s2_qty: 200 },
+            { name: "De Kuyper Sirup (exkl. Grenadine)", art: "807068", unit: "0,7l", s1_val: 0.25, s1_qty: 500 }
         ];
 
         let contractMonths = 0;
         let currentSigTarget = null;
 
-        // Clean Print Protocol: Event Listener für den Druckvorgang
         window.addEventListener('beforeprint', () => {
-            // Check Pouring Grid
             const pouringGrid = document.getElementById('pouring-grid');
             if (pouringGrid.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
-                pouringGrid.style.display = 'none';
-                document.getElementById('h3-pouring').style.display = 'none';
+                pouringGrid.style.display = 'none'; document.getElementById('h3-pouring').style.display = 'none';
             }
-            
-            // Check Listing Grid
             const listingGrid = document.getElementById('listing-grid');
             if (listingGrid.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
-                listingGrid.style.display = 'none';
-                document.getElementById('h3-listing').style.display = 'none';
+                listingGrid.style.display = 'none'; document.getElementById('h3-listing').style.display = 'none';
             }
-
-            // Unchecked Items ausblenden
             document.querySelectorAll('.grid-item').forEach(item => {
                 const cb = item.querySelector('input[type="checkbox"]');
-                if (cb && !cb.checked) {
-                    item.style.display = 'none';
-                    item.classList.add('hidden-for-print');
-                }
+                if (cb && !cb.checked) { item.style.display = 'none'; item.classList.add('hidden-for-print'); }
             });
         });
-
         window.addEventListener('afterprint', () => {
-            // Nach dem Druck alles wieder in den Ursprungszustand versetzen
-            document.getElementById('pouring-grid').style.display = '';
-            document.getElementById('h3-pouring').style.display = '';
-            document.getElementById('listing-grid').style.display = '';
-            document.getElementById('h3-listing').style.display = '';
-
-            document.querySelectorAll('.hidden-for-print').forEach(item => {
-                item.style.display = '';
-                item.classList.remove('hidden-for-print');
-            });
+            document.getElementById('pouring-grid').style.display = ''; document.getElementById('h3-pouring').style.display = '';
+            document.getElementById('listing-grid').style.display = ''; document.getElementById('h3-listing').style.display = '';
+            document.querySelectorAll('.hidden-for-print').forEach(item => { item.style.display = ''; item.classList.remove('hidden-for-print'); });
         });
 
-        const getItemName = (id) => {
-            const item = pouringItems.find(p => p.id === id) || listingItems.find(l => l.id === id);
-            return item ? item.name : id;
-        };
+        const getItemName = (id) => { const item = pouringItems.find(p => p.id === id) || listingItems.find(l => l.id === id); return item ? item.name : id; };
 
         function syncAllMatrices() {
             const rvRows = document.querySelectorAll('.rv-row');
@@ -443,7 +436,6 @@
             wkzItems.forEach((item, i) => {
                 const row = document.getElementById(`wkz-row-${i}`);
                 if (!row) return;
-
                 const checkedIds = item.req.filter(id => document.getElementById(id) && document.getElementById(id).checked);
                 const missingIds = item.req.filter(id => !document.getElementById(id) || !document.getElementById(id).checked);
                 const missingAlertSpan = document.getElementById(`wkz-missing-${i}`);
@@ -452,14 +444,12 @@
                     row.classList.remove('is-active', 'locked');
                     if (missingAlertSpan) missingAlertSpan.innerHTML = '';
                 } else if (missingIds.length === 0) {
-                    row.classList.add('is-active');
-                    row.classList.remove('locked');
+                    row.classList.add('is-active'); row.classList.remove('locked');
                     if (missingAlertSpan) missingAlertSpan.innerHTML = '';
                 } else {
                     if (item.req.length > 1) { 
                         row.classList.add('is-active', 'locked');
                         const missingNames = missingIds.map(id => getItemName(id)).join(', ');
-                        
                         if (missingAlertSpan) {
                             missingAlertSpan.innerHTML = `🔒 Potenzial: ${item.val.toFixed(2)} €. Fehlend: ${missingNames}`;
                             let textColor = 'var(--ww-orange)';
@@ -468,7 +458,6 @@
                             if(item.cssClass === 'highlight-whiskey') textColor = 'var(--pkg-whiskey)';
                             missingAlertSpan.style.color = textColor;
                         }
-
                         missingIds.forEach(id => {
                             const cb = document.getElementById(id);
                             if (cb) {
@@ -477,12 +466,9 @@
                                 placeholder.setAttribute('data-label', item.label);
                             }
                         });
-                    } else {
-                        row.classList.remove('is-active');
-                    }
+                    } else { row.classList.remove('is-active'); }
                 }
             });
-
             updateTotals();
         }
 
@@ -496,10 +482,7 @@
                 contractMonths = months;
                 display.innerText = `${months} Monate`;
                 display.classList.remove('hidden');
-            } else { 
-                contractMonths = 0; 
-                display.classList.add('hidden'); 
-            }
+            } else { contractMonths = 0; display.classList.add('hidden'); }
             rvKPIs.forEach((_, i) => calcRV(i));
         }
 
@@ -511,7 +494,6 @@
             const qtyPa = parseNum(qtyInput.value);
             const price = parseNum(priceInput.value);
             const item = rvKPIs[idx];
-            
             const effectiveMonths = contractMonths > 0 ? contractMonths : 12;
             const totalQty = (qtyPa / 12) * effectiveMonths;
             
@@ -523,28 +505,18 @@
                 const progBg = document.getElementById(`rv-prog-bg-${idx}`);
                 const progBar = document.getElementById(`rv-prog-${idx}`);
                 const progTxt = document.getElementById(`rv-prog-txt-${idx}`);
-
                 if (progBg && progBar && progTxt) {
                     if (qtyPa > 0) {
                         progBg.style.display = 'block'; progTxt.style.display = 'block';
                         let percent = (totalQty / item.s2_qty) * 100;
                         progBar.style.width = (percent > 100 ? 100 : percent) + '%';
-                        
                         if (isTier2) {
-                            progBar.style.background = 'var(--ww-green-dark)';
-                            progTxt.innerText = `👑 Stufe 2 erreicht`;
-                            progTxt.style.color = 'var(--ww-green-dark)';
-                            progTxt.style.fontWeight = 'bold';
+                            progBar.style.background = 'var(--ww-green-dark)'; progTxt.innerText = `👑 Stufe 2 erreicht`; progTxt.style.color = 'var(--ww-green-dark)'; progTxt.style.fontWeight = 'bold';
                         } else {
                             let missing = Math.ceil(item.s2_qty - totalQty);
-                            progBar.style.background = 'var(--ww-orange)';
-                            progTxt.innerText = `Noch ${missing} Flaschen`;
-                            progTxt.style.color = 'var(--ww-border)';
-                            progTxt.style.fontWeight = 'normal';
+                            progBar.style.background = 'var(--ww-orange)'; progTxt.innerText = `Noch ${missing} Flaschen`; progTxt.style.color = 'var(--ww-border)'; progTxt.style.fontWeight = 'normal';
                         }
-                    } else {
-                        progBg.style.display = 'none'; progTxt.style.display = 'none';
-                    }
+                    } else { progBg.style.display = 'none'; progTxt.style.display = 'none'; }
                 }
             }
 
@@ -553,14 +525,30 @@
             const durCell = document.getElementById(`rv-total-dur-${idx}`);
 
             if (price > limit) {
-                priceInput.classList.add('input-error');
-                paCell.innerText = "LIMIT!"; durCell.innerText = "---";
+                priceInput.classList.add('input-error'); paCell.innerText = "LIMIT!"; durCell.innerText = "---";
             } else {
                 priceInput.classList.remove('input-error');
                 const totalPa = qtyPa * price;
                 const totalDur = contractMonths > 0 ? (totalPa / 12) * contractMonths : 0;
-                paCell.innerText = totalPa.toFixed(2) + " €";
-                durCell.innerText = totalDur.toFixed(2) + " €";
+                paCell.innerText = totalPa.toFixed(2) + " €"; durCell.innerText = totalDur.toFixed(2) + " €";
+            }
+            updateTotals();
+        }
+
+        // Live Validation for WKZ Target Quantity
+        function validateWkzQty(idx) {
+            const input = document.getElementById(`wkz-qty-${idx}`);
+            const minQty = wkzItems[idx].minQty;
+            const entered = parseNum(input.value);
+            
+            if (input.value === "") {
+                input.classList.remove('input-error', 'input-success');
+            } else if (entered < minQty) {
+                input.classList.add('input-error');
+                input.classList.remove('input-success');
+            } else {
+                input.classList.add('input-success');
+                input.classList.remove('input-error');
             }
             updateTotals();
         }
@@ -602,15 +590,9 @@
             const distInput = document.getElementById('distributor-name');
             const directCheck = document.getElementById('direct-purchase');
             if (directCheck.checked) {
-                distInput.dataset.savedValue = distInput.value;
-                distInput.value = 'DIREKTBEZUG WEIN WOLF';
-                distInput.style.pointerEvents = 'none';
-                distInput.style.opacity = '0.7';
-                distInput.classList.remove('input-error');
+                distInput.dataset.savedValue = distInput.value; distInput.value = 'DIREKTBEZUG WEIN WOLF'; distInput.style.pointerEvents = 'none'; distInput.style.opacity = '0.7'; distInput.classList.remove('input-error');
             } else {
-                distInput.value = (distInput.dataset.savedValue && distInput.dataset.savedValue !== 'DIREKTBEZUG WEIN WOLF') ? distInput.dataset.savedValue : '';
-                distInput.style.pointerEvents = 'auto';
-                distInput.style.opacity = '1';
+                distInput.value = (distInput.dataset.savedValue && distInput.dataset.savedValue !== 'DIREKTBEZUG WEIN WOLF') ? distInput.dataset.savedValue : ''; distInput.style.pointerEvents = 'auto'; distInput.style.opacity = '1';
             }
         }
 
@@ -622,8 +604,7 @@
                 if (!el.value.trim()) { el.classList.add('input-error'); allGood = false; }
                 else { el.classList.remove('input-error'); }
             });
-            if (allGood) window.print();
-            else alert("Bitte füllen Sie die Stammdaten aus.");
+            if (allGood) window.print(); else alert("Bitte füllen Sie die Stammdaten aus.");
         }
 
         const modal = document.getElementById('sig-modal');
@@ -657,8 +638,7 @@
             document.querySelectorAll('input:not([type="button"]):not([type="file"]), select, textarea').forEach(el => {
                 if (el.id) state[el.id] = el.type === 'checkbox' ? el.checked : el.value;
             });
-            state['sig-ww-data'] = document.getElementById('sig-ww').toDataURL();
-            state['sig-kunde-data'] = document.getElementById('sig-kunde').toDataURL();
+            state['sig-ww-data'] = document.getElementById('sig-ww').toDataURL(); state['sig-kunde-data'] = document.getElementById('sig-kunde').toDataURL();
             let customerName = document.getElementById('partner-name').value.trim().replace(/[^a-zA-Z0-9äöüÄÖÜß]/g, '_');
             const fileName = `WW_Entwurf_${customerName || 'Unbenannt'}_${new Date().toISOString().split('T')[0]}.json`;
             const blob = new Blob([JSON.stringify(state)], {type: "application/json"});
@@ -692,8 +672,21 @@
             const pGrid = document.getElementById('pouring-grid');
             const lGrid = document.getElementById('listing-grid');
             
-            pouringItems.forEach(item => { pGrid.innerHTML += `<div class="grid-item"><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}" onchange="syncAllMatrices()"></div>`; });
-            listingItems.forEach(item => { lGrid.innerHTML += `<div class="grid-item"><div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : 'IMG'}</div><div class="product-label">${item.name}</div><input type="checkbox" id="${item.id}" onchange="syncAllMatrices()"></div>`; });
+            const generateGridItem = (item) => `
+                <div class="grid-item">
+                    <div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : '<span style="font-size:7px;color:#aaa;">BILD FEHLT</span>'}</div>
+                    <div class="product-label">
+                        ${item.name}
+                        <div class="info-container" onclick="toggleTooltip(this, event)">
+                            <span class="info-icon">i</span>
+                            <div class="tooltip">${item.desc}</div>
+                        </div>
+                    </div>
+                    <input type="checkbox" id="${item.id}" onchange="syncAllMatrices()">
+                </div>`;
+
+            pouringItems.forEach(item => { pGrid.innerHTML += generateGridItem(item); });
+            listingItems.forEach(item => { lGrid.innerHTML += generateGridItem(item); });
             
             const rvBody = document.getElementById('rv-body');
             rvKPIs.forEach((item, i) => {
@@ -701,7 +694,11 @@
                 if(item.s2_val) tt = `Stufe 1: ${item.s1_val.toFixed(2)}€ (ab ${item.s1_qty} Flaschen)<br>Stufe 2: ${item.s2_val.toFixed(2)}€ (ab ${item.s2_qty} Flaschen)`;
                 rvBody.innerHTML += `
                     <tr id="rv-row-${i}" class="rv-row">
-                        <td>${item.name} <div class="info-container"><span class="info-icon">i</span><span class="tooltip">${tt}</span></div></td>
+                        <td>
+                            ${item.name}
+                            <div style="font-size:9px; color:#888; margin-top:2px; font-family:monospace;">Art: ${item.art}</div>
+                            <div class="info-container" onclick="toggleTooltip(this, event)"><span class="info-icon">i</span><div class="tooltip">${tt}</div></div>
+                        </td>
                         <td><input type="number" id="rv-qty-${i}" oninput="calcRV(${i})" placeholder="${item.s1_qty}">${item.s2_val ? `<div class="progress-bg" id="rv-prog-bg-${i}"><div class="progress-bar" id="rv-prog-${i}"></div></div><div class="progress-text" id="rv-prog-txt-${i}"></div>` : ''}</td>
                         <td><select id="rv-unit-${i}" onchange="updateTotals()"><option value="1.0" ${item.unit=='1,0l'?'selected':''}>1,0l</option><option value="0.7" ${item.unit=='0,7l'?'selected':''}>0,7l</option></select></td>
                         <td><input type="text" id="rv-price-${i}" oninput="calcRV(${i})"></td>
@@ -712,15 +709,17 @@
 
             const wkzBody = document.getElementById('wkz-body');
             wkzItems.forEach((item, i) => {
-                let tt = `<strong>Ziel:</strong> ${item.goal}${item.note ? '<br><span style="color:var(--ww-orange)">' + item.note + '</span>' : ''}`;
+                let tt = `<strong>Mindest-Ziel:</strong> ${item.minQty} Flaschen${item.note ? '<br><span style="color:var(--ww-orange)">' + item.note + '</span>' : ''}`;
                 wkzBody.innerHTML += `
                     <tr id="wkz-row-${i}" class="wkz-row">
                         <td>
                             <strong style="color: var(--ww-green-dark); font-family: Montserrat;">${item.name}</strong>
-                            <div class="info-container"><span class="info-icon">i</span><span class="tooltip">${tt}</span></div>
+                            <div style="font-size:9px; color:#888; margin-top:2px; font-family:monospace;">Art: ${item.art}</div>
+                            <div class="info-container" onclick="toggleTooltip(this, event)"><span class="info-icon">i</span><div class="tooltip">${tt}</div></div>
                             <span id="wkz-missing-${i}" class="missing-alert"></span>
                         </td>
                         <td><input type="text" id="wkz-task-${i}" value="${item.task}"></td>
+                        <td><input type="number" id="wkz-qty-${i}" oninput="validateWkzQty(${i})" placeholder="Mind. ${item.minQty} Fl." title="Bitte vereinbarte Jahresmenge eintragen"></td>
                         <td><select><option>Nach Umsetzung</option><option>Bei Abschluss</option></select></td>
                         <td><input type="text" id="wkz-val-${i}" oninput="updateTotals()" value="${item.val.toFixed(2)}"></td>
                     </tr>`;
