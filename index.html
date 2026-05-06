@@ -2,7 +2,9 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Wein Wolf - Kooperationsvereinbarung v9.1 (Pro Edition)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wein Wolf - Kooperationsvereinbarung v9.3.9 (Pro Edition)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -108,6 +110,16 @@
 
         .wkz-notice { font-size: 11px; background: rgba(228, 89, 89, 0.1); border-left: 3px solid var(--ww-orange); padding: 8px; margin-top: 5px; display: inline-block; }
 
+        /* v9.3.3: WKZ-Task-Textarea mit Auto-Grow — passt sich an Textlänge an */
+        .wkz-task-area {
+            width: 95%; border: none; background: transparent;
+            font-size: 13px; outline: none; color: var(--ww-green-dark);
+            font-family: 'Source Sans Pro', sans-serif; line-height: 1.4;
+            resize: none; overflow: hidden; padding: 0;
+            min-height: 1.4em;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
         @media print { 
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; margin: 0; }
             .print-btn, .info-container, .print-hide, .action-container { display: none !important; }
@@ -120,11 +132,227 @@
             .missing-alert { display: none !important; } 
             .grid-item:not(:has(input:checked)) { display: none !important; }
         }
+
+        /* PDF-Render-Modus (für html2pdf.js) */
+        body.pdf-rendering .print-btn,
+        body.pdf-rendering .info-container,
+        body.pdf-rendering .print-hide,
+        body.pdf-rendering .action-container,
+        body.pdf-rendering .missing-alert,
+        body.pdf-rendering .pdf-hidden { display: none !important; }
+        body.pdf-rendering input, 
+        body.pdf-rendering select, 
+        body.pdf-rendering textarea { border: none !important; outline: none !important; background: transparent !important; }
+        body.pdf-rendering .line-input { border-bottom: 1px solid #000 !important; }
+        body.pdf-rendering select { appearance: none; -webkit-appearance: none; }
+
+        /* v9.3.6: Im PDF-Render Bilder & Grid kompakter — ausgewählte Marken bleiben als visuelle Anker, 
+           aber dominieren nicht mehr die Vertragsoptik. */
+        body.pdf-rendering .visual-grid { gap: 6px; margin: 12px 0; }
+        body.pdf-rendering .bottle-placeholder { height: 45px; margin-bottom: 4px; }
+        body.pdf-rendering .product-label { font-size: 7px; min-height: 18px; line-height: 1.0; }
+
+        /* v9.3.8: Letter-spacing im PDF-Render auf moderate Werte reduzieren.
+           html2canvas hat einen bekannten Range-API-Bug bei stark gesperrten Headern
+           in Kombination mit text-transform: uppercase und Sonderzeichen.
+           Optisch kaum sichtbarer Unterschied, technisch deutlich stabiler. */
+        body.pdf-rendering h1,
+        body.pdf-rendering h2,
+        body.pdf-rendering h3,
+        body.pdf-rendering .sub-brand,
+        body.pdf-rendering th,
+        body.pdf-rendering .partner-label,
+        body.pdf-rendering .sig-box { letter-spacing: 0.5px !important; }
+
+        /* Autosave-Indikator */
+        #autosave-indicator {
+            position: fixed; bottom: 30px; left: 30px; 
+            background: var(--ww-green-dark); color: #fff; 
+            padding: 8px 14px; border-radius: 20px; 
+            font-size: 11px; font-family: 'Montserrat'; font-weight: 600;
+            letter-spacing: 0.5px; opacity: 0; 
+            transition: opacity 0.3s; z-index: 999;
+            pointer-events: none;
+        }
+        #autosave-indicator.visible { opacity: 0.9; }
+        #autosave-indicator.print-hide { /* geerbt */ }
+
+        /* PDF-Audit-Footer (wird dynamisch eingefügt) */
+        #pdf-audit-footer {
+            margin-top: 40px; padding: 15px; 
+            border-top: 1px solid #ccc; 
+            font-family: monospace; font-size: 9px; 
+            color: #555; background: #fafafa; 
+            line-height: 1.6;
+            page-break-inside: avoid;
+        }
+        #pdf-audit-footer strong { 
+            font-family: 'Montserrat'; font-size: 10px; 
+            color: var(--ww-green-dark); letter-spacing: 1px;
+        }
+        #pdf-audit-footer .hash-value {
+            word-break: break-all; 
+            background: #fff; padding: 4px 6px; 
+            border: 1px solid #ddd; border-radius: 2px;
+            display: inline-block; margin-top: 2px;
+        }
+
+        /* ============================================================ */
+        /* v9.3.4: Bezugsweg-Block (refaktoriert von inline-style → class) */
+        /* ============================================================ */
+        .bezugsweg-row {
+            display: flex; align-items: center; gap: 10px;
+            margin-top: 15px; flex-wrap: wrap;
+        }
+        .bezugsweg-label { margin-right: 0; }
+        .bezugsweg-row #distributor-name {
+            flex: 1; min-width: 200px;
+            border-bottom: 2px solid var(--ww-orange);
+        }
+        .bezugsweg-direct {
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .bezugsweg-direct label {
+            cursor: pointer; font-weight: 600;
+            font-size: 13px; color: var(--ww-green-dark);
+        }
+
+        /* ============================================================ */
+        /* v9.3.5: Ort & Datum getrennte Felder im Footer-Bereich        */
+        /* ============================================================ */
+        .sig-fields-container {
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .sig-fields-row {
+            display: flex; gap: 10px;
+        }
+        .sig-field-location {
+            flex: 1;
+            border-bottom: 2px solid var(--ww-orange);
+        }
+        .sig-field-date {
+            flex: 0 0 145px;
+            border-bottom: 2px solid var(--ww-orange);
+        }
+
+        /* ============================================================ */
+        /* v9.3.4: RESPONSIVE — Tablet Portrait & Handy Landscape (≤768px) */
+        /* ============================================================ */
+        @media (max-width: 768px) {
+            body { margin: 15px; }
+
+            /* Header kompakter */
+            .header { margin-bottom: 25px; padding-bottom: 15px; }
+            .header h1 { font-size: 18px; letter-spacing: 2px; }
+            .header .sub-brand { font-size: 10px; letter-spacing: 2px; }
+            .logo-area { max-width: 180px; margin-bottom: 12px; }
+
+            /* Section-Header kompakter */
+            h3 { font-size: 12px; padding: 8px 12px; margin-top: 25px; }
+
+            /* Partner-Section: 2 Spalten → 1 Spalte */
+            .partner-section { grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px; }
+
+            /* Visual-Grid: 9 → 4 Spalten */
+            .visual-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+            .bottle-placeholder { height: 75px; }
+            .product-label { font-size: 9px; min-height: 26px; }
+
+            /* Tabellen-Tweaks: kompakter, kleinere Schrift */
+            table th { padding: 6px 4px; font-size: 9px; }
+            table td { padding: 5px 4px; font-size: 11px; }
+            input[type="number"], input[type="text"], input[type="date"],
+            input[type="email"], select, textarea { font-size: 12px; }
+            .wkz-task-area { font-size: 12px; }
+
+            /* RV-Notiz-Tabelle und WKZ-Notice etwas kleiner */
+            .wkz-notice { font-size: 10px; padding: 6px 8px; }
+
+            /* Grand Total: gestapelt */
+            #grand-total-container {
+                flex-direction: column; align-items: flex-start;
+                gap: 8px; padding: 18px; border-left-width: 5px;
+            }
+            #grand-total { font-size: 24px; }
+            #grand-total-container > div span {
+                font-size: 12px; letter-spacing: 1.5px;
+            }
+
+            /* Footer-Signaturen: 3 Spalten → 1 Spalte */
+            .footer-signatures { grid-template-columns: 1fr; gap: 25px; margin-top: 35px; }
+            .sig-fields-container { height: auto; padding-top: 30px; }
+
+            /* Legal-Block kompakter */
+            .legal-block { padding: 15px; font-size: 11px; }
+
+            /* Bezugsweg-Block: stacked */
+            .bezugsweg-row { flex-direction: column; align-items: stretch; gap: 12px; }
+            .bezugsweg-row #distributor-name { width: 100%; min-width: 0; }
+
+            /* Modal-Signatur kompakter */
+            .modal-content { padding: 18px; }
+            #modal-canvas { height: 280px; }
+            .btn-action { padding: 12px 22px; font-size: 11px; }
+            .modal-btns { gap: 18px; }
+
+            /* Floating-Buttons kleiner */
+            .print-btn {
+                bottom: 15px; right: 15px;
+                padding: 12px 18px; font-size: 11px;
+            }
+            #autosave-indicator {
+                bottom: 15px; left: 15px;
+                font-size: 10px; padding: 6px 10px;
+            }
+
+            /* Action-Container: Wrap statt überlauf */
+            .action-container { gap: 10px; margin-top: 50px; }
+
+            /* Sondervereinbarungen kleiner */
+            .custom-textarea { font-size: 12px; padding: 12px; }
+        }
+
+        /* ============================================================ */
+        /* v9.3.4: RESPONSIVE — Handy Portrait (≤480px)                   */
+        /* ============================================================ */
+        @media (max-width: 480px) {
+            body { margin: 10px; }
+
+            .header h1 { font-size: 15px; letter-spacing: 1.5px; }
+            .header .sub-brand { font-size: 9px; }
+
+            /* Visual-Grid: 4 → 2 Spalten, dafür größere Bilder */
+            .visual-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .bottle-placeholder { height: 95px; }
+            .product-label { font-size: 11px; min-height: 32px; }
+
+            /* Tabellen noch kompakter */
+            table th { padding: 5px 3px; font-size: 8px; }
+            table td { padding: 4px 3px; font-size: 10px; }
+
+            /* Action-Container: column statt row */
+            .action-container { flex-direction: column; }
+            .util-btn { width: 100%; }
+
+            /* Ort/Datum gestapelt auf Handy Portrait */
+            .sig-fields-row { flex-direction: column; gap: 10px; }
+            .sig-field-date { flex: 0 0 auto; }
+
+            /* Grand Total: mobile-Größe */
+            #grand-total { font-size: 20px; }
+
+            /* Modal-Canvas weiter reduziert */
+            #modal-canvas { height: 220px; }
+        }
     </style>
 </head>
 <body>
 
-    <button type="button" class="print-btn print-hide" onclick="triggerPrint()">Dokument Drucken</button>
+    <button type="button" class="print-btn print-hide" onclick="generatePDF()">📄 PDF erstellen</button>
+    <div id="autosave-indicator" class="print-hide">💾 Gespeichert</div>
 
     <div id="sig-modal" class="print-hide">
         <div class="modal-content">
@@ -140,7 +368,7 @@
     <div class="header">
         <div class="logo-area"><img src="https://www.weinwolf.de/bundles/weinwolftheme/storefront/img/logo_header.svg" alt="WEIN WOLF"></div>
         <h1>Kooperationsvereinbarung</h1>
-        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v9.1 PRO iPAD EDITION</div>
+        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v9.3.9 PRO EDITION</div>
     </div>
 
     <div class="partner-section">
@@ -202,6 +430,9 @@
             </tr>
         </tfoot>
     </table>
+    <div class="wkz-notice" style="margin-bottom: 10px;">
+        <strong>Hinweis:</strong> Die Spalte „Wert Laufzeit" zeigt die Summe bei <strong>100 % Zielerreichung</strong>. Gemäß §2 erfolgt die Auszahlung bei mindestens <strong>80 %</strong> der Gesamt-Zielmenge.
+    </div>
 
     <h3>2. Werbekostenzuschuss (WKZ)</h3>
     <table id="wkz-main-table">
@@ -238,19 +469,24 @@
         <strong>§1</strong> Der Partner wird die vereinbarten Produkte im Vertragszeitraum und bis zur vereinbarten Zielmenge ausschenken, auf der Getränkekarte listen, sowie in der Bar sichtbar präsentieren.<br><br>
         <strong>§2</strong> Die Abrechnung der Rückvergütungen erfolgt jährlich nach Erfüllung (mind. 80 % der Gesamt-Zielmenge) der Zielmengen gegen Rechnung und Bezugsnachweis über den Fachgroßhändler.<br><br>
         <strong>§3</strong> Sollte die Zielmenge nicht erreicht werden verlängert sich die Vereinbarung einmalig um weitere 12 Monate.<br><br>
-        <div style="display: flex; align-items: center; margin-top: 15px;">
-            <strong style="margin-right: 10px;">Bezugsweg:</strong> 
-            <input type="text" id="distributor-name" style="width: 45%; border-bottom: 2px solid var(--ww-orange);" placeholder="Fachgroßhändler inkl. Kundennummer">
-            <span class="print-hide" style="margin-left: 20px; display: inline-flex; align-items: center; gap: 8px;">
+        <div class="bezugsweg-row">
+            <strong class="bezugsweg-label">Bezugsweg:</strong> 
+            <input type="text" id="distributor-name" placeholder="Fachgroßhändler inkl. Kundennummer">
+            <span class="print-hide bezugsweg-direct">
                 <input type="checkbox" id="direct-purchase" onchange="toggleDistributor()">
-                <label for="direct-purchase" style="cursor: pointer; font-weight: 600; font-size: 13px; color: var(--ww-green-dark);">Direktbezug Wein Wolf</label>
+                <label for="direct-purchase">Direktbezug Wein Wolf</label>
             </span>
         </div>
     </div>
 
     <div class="footer-signatures">
         <div class="sig-container">
-            <div style="height: 120px;"><input type="text" id="sig-location-date" style="border-bottom: 2px solid var(--ww-orange); margin-top: 80px; width:100%;" placeholder="Ort / Datum"></div>
+            <div class="sig-fields-container">
+                <div class="sig-fields-row">
+                    <input type="text" id="sig-location" class="sig-field-location" placeholder="Ort">
+                    <input type="date" id="sig-date" class="sig-field-date">
+                </div>
+            </div>
             <div class="sig-box">Standort & Datum</div>
         </div>
         <div class="sig-container">
@@ -277,6 +513,65 @@
     </div>
 
     <script>
+        // ============================================================
+        // v9.3.9: Range-API-Patch (Diagnose + Selbstheilung)
+        // ============================================================
+        // html2canvas (Teil von html2pdf.js) ruft intern Range.setStart/setEnd auf,
+        // um Text-Layout zu messen. Bei bestimmten Inhalts-Konstellationen verzählt
+        // sich die Bibliothek und versucht einen Offset zu setzen, der größer als
+        // die Knotenlänge ist — das wirft einen IndexSizeError und crasht den Render.
+        //
+        // Dieser Patch wrappt beide Methoden:
+        //   1. Loggt jeden invaliden Aufruf in die Browser-Konsole MIT vollständigem
+        //      Kontext (Element, Klasse, ID, Text, Eltern-HTML), damit wir den exakten
+        //      Verursacher identifizieren können.
+        //   2. Clampt den invaliden Offset auf die tatsächliche Knotenlänge, sodass
+        //      der Render durchläuft (worst case: minimale visuelle Imperfektion an
+        //      einer Stelle, statt komplettem Crash).
+        //
+        // Sobald wir wissen, wo der Bug sitzt, kann der Patch wieder raus und am
+        // Inhalt selbst gefixt werden.
+        // ============================================================
+        ;(() => {
+            if (window._wwRangePatchInstalled) return;
+            window._wwRangePatchInstalled = true;
+            window._wwRangePatchHits = 0;
+
+            ['setStart', 'setEnd'].forEach(method => {
+                const original = Range.prototype[method];
+                Range.prototype[method] = function(node, offset) {
+                    if (node && node.nodeType === 3 /* TEXT_NODE */) {
+                        const len = node.length;
+                        if (offset > len) {
+                            window._wwRangePatchHits++;
+                            const parent = node.parentElement;
+                            const grandparent = parent && parent.parentElement;
+                            console.warn(
+                                `[v9.3.9 Range Patch] ${method}: offset ${offset} > length ${len} — auto-clamped`,
+                                {
+                                    text: JSON.stringify(node.textContent),
+                                    textLength: len,
+                                    visualLength: Array.from(node.textContent).length,
+                                    parentTag: parent && parent.tagName,
+                                    parentClass: parent && parent.className,
+                                    parentId: parent && parent.id,
+                                    parentOuterHTML: parent && parent.outerHTML
+                                        ? parent.outerHTML.substring(0, 400)
+                                        : null,
+                                    grandparentTag: grandparent && grandparent.tagName,
+                                    grandparentClass: grandparent && grandparent.className,
+                                    hitNumber: window._wwRangePatchHits
+                                }
+                            );
+                            return original.call(this, node, len);
+                        }
+                    }
+                    return original.call(this, node, offset);
+                };
+            });
+            console.log('[v9.3.9] Range-API-Patch aktiv. Bei PDF-Bug: Browser-Konsole prüfen.');
+        })();
+
         function toggleTooltip(el, e) {
             e.stopPropagation();
             const isActive = el.classList.contains('is-active');
@@ -287,17 +582,35 @@
             document.querySelectorAll('.info-container').forEach(c => c.classList.remove('is-active'));
         });
 
+        // v9.3.3: Auto-Grow für Textareas (WKZ-Task-Spalte).
+        // Setzt Höhe zurück und passt sie dann am Inhalt aus.
+        function autoGrowTextarea(el) {
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
+        }
+
+        // matrixMap: Verknüpft Listing/Pouring-Checkboxen mit den Rebatten-Zeilen (rvKPIs).
+        // v9.3.1 — Drei Falschverknüpfungen aus v9.2 entfernt:
+        //   • list-7 (Macaronesian Gin)  ≠ rvKPIs[6] (Whitley Neill)        — Macaronesian hat keine eigene RV-Zeile.
+        //   • list-14 (Becherovka)        ≠ rvKPIs[12] (Romana Sambuca)      — Becherovka hat keine eigene RV-Zeile.
+        //   • list-17 (Angostura Bitter)  ≠ rvKPIs[9]  (Angostura Rum)       — namensgleich, aber andere Konditionsschiene.
+        // v9.3.2 — Sazerac Rye laut KPI 2026 als Pouring deklariert. Move list-9 → pour-5.
+        //   • list-9 aus matrixMap entfernt, pour-5 → [4] (Sazerac Rye RV-Zeile) eingefügt.
+        //   • Whiskey-Combi-WKZ-Anforderung entsprechend auf pour-5 angepasst.
+        //   • Migration alter Drafts erfolgt in applyState() (list-9 → pour-5).
         const matrixMap = {
             "pour-0": [0], "pour-1": [3], "pour-2": [2], "pour-3": [10], "pour-4": [9],
-            "pour-6": [8], "pour-8": [5], "pour-9": [1], 
-            "list-0": [7], "list-1": [7], "list-2": [15], "list-3": [16], "list-4": [13], 
-            "list-5": [19], "list-6": [6], "list-7": [6], "list-8": [21], "list-9": [4], 
-            "list-10": [11], "list-11": [22], "list-12": [17], "list-13": [12], "list-14": [12], 
-            "list-17": [9], "list-18": [14], "list-19": [18], "list-20": [23], 
+            "pour-5": [4], "pour-6": [8], "pour-8": [5], "pour-9": [1],
+            "list-0": [7], "list-1": [7], "list-2": [15], "list-3": [16], "list-4": [13],
+            "list-5": [19], "list-6": [6], "list-8": [21],
+            "list-10": [11], "list-11": [22], "list-12": [17], "list-13": [12],
+            "list-18": [14], "list-19": [18], "list-20": [23],
             "list-21": [24], "list-22": [25], "list-23": [27], "list-24": [20], "list-25": [9], "list-26": [26]
         };
 
         // WKZ Data with explicit minimum targets for validation
+        // v9.3.2: Whiskey Combi req[0] von "list-9" auf "pour-5" umgestellt (Sazerac jetzt Pouring).
         const wkzItems = [
             { name: "Benvenuti Limoncello", art: "230028", req: ["list-4"], val: 200, task: "Limoncello Switch", minQty: 100, note: "", label: "", cssClass: "" },
             { name: "Cucielo Vermouth", art: "814003", req: ["list-5"], val: 250, task: "Vermouth Switch", minQty: 75, note: "", label: "", cssClass: "" },
@@ -306,103 +619,237 @@
             { name: "Angostura Bitters", art: "710102", req: ["list-17", "list-25"], val: 100, task: "Listung & Aktivierung Bitters Range + 1919", minQty: 36, note: "Wichtig: Drink Aktivierung (je 12 Fl.)", label: "", cssClass: "" },
             { name: "Gin Package", art: "xxxxx (Paket)", req: ["list-8", "list-7", "pour-8"], val: 1500, task: "Listung Engine / Macaronesian / Martin Millers", minQty: 150, note: "(3/3 Gelistet)", label: "ZIEL: GIN", cssClass: "highlight-gin" },
             { name: "Rum Combi Strategy", art: "xxxxx (Paket)", req: ["pour-2", "pour-4", "pour-3", "list-25"], val: 150, task: "Listung Pampero / Angostura 3Y / Myers's plus Drink 1919", minQty: 100, note: "Wichtig: Drink Aktivierung", label: "ZIEL: RUM", cssClass: "highlight-rum" },
-            { name: "Whiskey Combi Strategy", art: "xxxxx (Paket)", req: ["list-9", "list-10", "list-11", "pour-1"], val: 150, task: "Listung Sazerac / Eagle Rare / The Busker / Buffalo Trace", minQty: 100, note: "Wichtig: Drink Aktivierung", label: "ZIEL: WHISKEY", cssClass: "highlight-whiskey" }
+            { name: "Whiskey Combi Strategy", art: "xxxxx (Paket)", req: ["pour-5", "list-10", "list-11", "pour-1"], val: 150, task: "Pouring Sazerac & Buffalo Trace + Listung Eagle Rare / The Busker", minQty: 100, note: "Wichtig: Drink Aktivierung", label: "ZIEL: WHISKEY", cssClass: "highlight-whiskey" }
         ];
 
+        // pouringItems: v9.3.2 — pour-5 (Sazerac Rye) ergänzt, laut KPI 2026 als Pouring-Marke deklariert.
         const pouringItems = [
             { id: "pour-0", name: "Zubrowka Biala", img: "https://www.weinwolf.de/thumbnail/e1/26/2b/1742828743/825000_2412_1920x1920.webp", desc: "Die unverkennbare polnische Herkunft von Zubrowka Biala liegt im sagenumwobenen Białowieza Wald, welcher sich im Osten über rund 1.500qm an der Grenze zwischen Polen und Weißrussland erstreckt. Er ist die Heimat der Bisons, die gleichzeitig auch das Symbol der Marke sind. Zubrowka Biala ist das Ergebnis einer über 500-jährigen Tradition, in der die Natürlichkeit des Waldes widergespiegelt wird. Es ist ein Vodka, der sich unkompliziert und natürlich präsentiert und die Welt der unzugänglichen, schneebedeckten Gebiete des Waldes offenbart. Er spiegelt die Kraft und die Vitalität der Bisons mit seinem einzigartigen Geschmack wider. Für die Herstellung findet ausschließlich Wasser einer schwer zugänglichen Quelle in der Nähe des Waldes und feinstes Getreide Verwendung. Hierdurch entsteht ein kristallklarer, sanfter Vodka, veredelt durch eine 7-fache Destillation und 4-fache Filtration." },
             { id: "pour-9", name: "Zubrowka Czarna", img: "https://www.weinwolf.de/thumbnail/a4/69/c3/1766133329/825032_2512_1920x1920.webp", desc: "Żubrówka Czarna ist ein Premium-Weizenwodka, der seinen milden Geschmack dem Reichtum der Natur verdankt. Die Komposition basiert auf einer Kombination aus exzellentem polnischem Weizendestillat und Wasser aus den reinsten Quellen des Białowieża-Urwalds. Sein endgültiger Charakter entsteht jedoch während der Filtration über Eichenholzkohle." },
             { id: "pour-1", name: "Buffalo Trace", img: "https://www.weinwolf.de/thumbnail/cb/2d/c9/1755504318/860001_2508_1920x1920.webp", desc: "Der Kentucky Straight Bourbon Buffalo Trace zeichnet sich durch seine ausgeprägte Süße aus, die auf den hohen Anteil von Mais zurückzuführen ist. Nach einer mindestens siebenjährigen Reifung in stark ausgekohlten Fässern entwickelt der Whiskey ein intensives und ausgewogenes Aroma." },
             { id: "pour-2", name: "Pampero", img: "https://www.weinwolf.de/thumbnail/01/a5/f6/1738071343/240001_2501_1920x1920.webp", desc: "In ehemaligen Scotch-Whiskey-Fässern gereift und aus über 40 verschiedenen Fässern gemischt, vereint er leichte, schwere und halbschwere Rumsorten für eine außergewöhnliche Qualität und Tiefe." },
-            { id: "pour-3", name: "Myers's Rum", img: "https://www.weinwolf.de/thumbnail/5e/d2/e1/1741273522/860004_2407_1920x1920.webp", desc: "Myers’s ist eine Mischung aus Pot-Still- und Column-Still-Rums aus Jamaika, die meisterhaft destilliert werden, um die vertrauenswürdige Qualität zu liefern. Butterige Noten entfalten sich beim ersten Schluck, gefolgt von süßem Zuckerrohr, Karamell, Tabak und Leder." },
+            { id: "pour-3", name: "Myers's Rum", img: "https://www.weinwolf.de/thumbnail/5e/d2/e1/1741273522/860004_2407_1920x1920.webp", desc: "Myers's ist eine Mischung aus Pot-Still- und Column-Still-Rums aus Jamaika, die meisterhaft destilliert werden, um die vertrauenswürdige Qualität zu liefern. Butterige Noten entfalten sich beim ersten Schluck, gefolgt von süßem Zuckerrohr, Karamell, Tabak und Leder." },
             { id: "pour-4", name: "Angostura 3Y", img: "https://www.weinwolf.de/thumbnail/a1/a3/69/1773129956/710218_2508_1920x1920.webp", desc: "Der Angostura 3 Jahre White Rum zeichnet sich durch einen eleganten und klaren Geschmack aus. Hergestellt auf Trinidad & Tobago, ist er ein leichter Rum. Die Lagerung in alten Bourbon-Fässern aus amerikanischer Eiche verleiht ihm eine feine Note." },
+            { id: "pour-5", name: "Sazerac Rye", img: "https://www.weinwolf.de/thumbnail/e6/f0/f3/1721916351/860006_2407_1920x1920.png", desc: "Der Rye Whiskey beeindruckt mit süßen Malzdüften, saftigen Orangen, Nelken, Anis und Bourbonvanille in der Nase. Am Gaumen entfaltet er eine dichte Textur mit kraftvollen Getreidenoten." },
             { id: "pour-6", name: "Lunazul Tequila", img: "https://www.weinwolf.de/thumbnail/7d/02/09/1717246215/833000_2301_1920x1920.png", desc: "Der Lunazul Tequila Blanco repräsentiert einen makellosen kristallklaren Tequila, der aus einer langen Familientradition hervorgegangen ist. Die Herstellung von hundertprozentigen Agaven-Tequilas in kleinen Chargen." },
-            { id: "pour-8", name: "Martin Miller's", img: "https://www.weinwolf.de/thumbnail/f1/7e/26/1769164529/009500_2601_1920x1920.webp", desc: "Martin Miller’s Original Gin wird nach den besten englischen Destillationstraditionen hergestellt – neu interpretiert mit einem modernen Ansatz. Florale Noten in der Nase, lebendige Zitrusaromen am Gaumen, die nahtlos in einen ausgewogenen Wacholdercharakter übergehen." }
+            { id: "pour-8", name: "Martin Miller's", img: "https://www.weinwolf.de/thumbnail/f1/7e/26/1769164529/009500_2601_1920x1920.webp", desc: "Martin Miller's Original Gin wird nach den besten englischen Destillationstraditionen hergestellt – neu interpretiert mit einem modernen Ansatz. Florale Noten in der Nase, lebendige Zitrusaromen am Gaumen, die nahtlos in einen ausgewogenen Wacholdercharakter übergehen." }
         ];
 
+        // listingItems: v9.3.2 — list-9 (Sazerac Rye) entfernt, ist jetzt pour-5.
+        // Bilder für Rutte (list-18), Tamboo (list-19) und Corazon (list-20) ergänzt.
         const listingItems = [
-            { id: "list-0", name: "Disaronno", img: "https://www.weinwolf.de/thumbnail/76/3a/b7/1743665748/713127_2408_1920x1920.webp", desc: "Disaronno Originale, entstanden im Jahr 1525, ist ein italienischer Likörklassiker mit unverwechselbarem, mandelartigem Aroma und feiner Süße. Pur auf Eis oder in Signature Cocktails wie dem Disaronno Sour entfaltet er sein volles Aroma." }, 
-            { id: "list-1", name: "Disaronno Velvet", img: "https://www.weinwolf.de/thumbnail/0f/99/92/1755091842/713126_2408_1920x1920.webp", desc: "Disaronno Velvet ist die sanft-cremige Interpretation des legendären italienischen Likörs und bringt mediterrane Leichtigkeit ins Glas. Er verbindet den ikonischen Disaronno-Geschmack mit einer feinen, samtigen Textur." }, 
+            { id: "list-0", name: "Disaronno", img: "https://www.weinwolf.de/thumbnail/76/3a/b7/1743665748/713127_2408_1920x1920.webp", desc: "Disaronno Originale, entstanden im Jahr 1525, ist ein italienischer Likörklassiker mit unverwechselbarem, mandelartigem Aroma und feiner Süße. Pur auf Eis oder in Signature Cocktails wie dem Disaronno Sour entfaltet er sein volles Aroma." },
+            { id: "list-1", name: "Disaronno Velvet", img: "https://www.weinwolf.de/thumbnail/0f/99/92/1755091842/713126_2408_1920x1920.webp", desc: "Disaronno Velvet ist die sanft-cremige Interpretation des legendären italienischen Likörs und bringt mediterrane Leichtigkeit ins Glas. Er verbindet den ikonischen Disaronno-Geschmack mit einer feinen, samtigen Textur." },
             { id: "list-2", name: "Amaro Montenegro", img: "https://www.weinwolf.de/thumbnail/a0/63/27/1731503247/200054_2302_1920x1920.png", desc: "Amaro Montenegro entfaltet ein faszinierendes Kräuteraroma, das an Majoran und Thymian erinnert und durch würzig-balsamische Nuancen von Weihrauch und Eukalyptus ergänzt wird." },
-            { id: "list-3", name: "Select Aperitivo", img: "https://www.weinwolf.de/thumbnail/72/c5/04/1726828127/200038_1908_1920x1920.png", desc: "Ein Bitterlikör aus 30 aromatischen Kräutern. Darunter Wachholderbeeren mit ihren balsamischen, floralen und erdigen Noten sowie Rhabarberwurzeln, die eine intensiv herbe Note beitragen." }, 
-            { id: "list-4", name: "Benvenuti Limoncello", img: "https://www.weinwolf.de/thumbnail/b7/52/50/1741260963/230028_2503_1920x1920.webp", desc: "Benvenuti Limoncello wird aus feinen sizilianischen Zitronen hergestellt, die noch von kleinen Erzeugern handverlesen werden. Ein perfektes Gleichgewicht von Süße, Säure und Bitterkeit." }, 
+            { id: "list-3", name: "Select Aperitivo", img: "https://www.weinwolf.de/thumbnail/72/c5/04/1726828127/200038_1908_1920x1920.png", desc: "Ein Bitterlikör aus 30 aromatischen Kräutern. Darunter Wachholderbeeren mit ihren balsamischen, floralen und erdigen Noten sowie Rhabarberwurzeln, die eine intensiv herbe Note beitragen." },
+            { id: "list-4", name: "Benvenuti Limoncello", img: "https://www.weinwolf.de/thumbnail/b7/52/50/1741260963/230028_2503_1920x1920.webp", desc: "Benvenuti Limoncello wird aus feinen sizilianischen Zitronen hergestellt, die noch von kleinen Erzeugern handverlesen werden. Ein perfektes Gleichgewicht von Süße, Säure und Bitterkeit." },
             { id: "list-5", name: "Cucielo Vermouth", img: "https://www.weinwolf.de/thumbnail/92/72/72/1717244627/814004_2106_1920x1920.png", desc: "Der Vermouth Rosso Cucielo besticht durch ein intensives Aroma, das karamellisierte Orangen und Rhabarber in harmonischer Verbindung mit würzigen Noten präsentiert." },
-            { id: "list-6", name: "Whitley Neill", img: "https://www.weinwolf.de/thumbnail/18/2c/90/1762875323/813010_2511_1920x1920.webp", desc: "Der Whitley Neill Distillers Cut Gin zeigt einen klassischen London Dry Stil mit ausgeprägten Wacholdernoten, ergänzt durch die fruchtige Frische getrockneter Orangenschalen." }, 
-            { id: "list-7", name: "Macaronesian Gin", img: "https://www.weinwolf.de/thumbnail/f4/ef/60/1765184721/006151_2512_1920x1920.webp", desc: "Kanarischer Gin, der mit in Vulkangestein gefiltertem Regenwasser und mit Botanikern von den Kanarischen Inseln hergestellt wird. Ein Super-Premium-Gin mit unendlicher Wasserreinheit!" }, 
+            { id: "list-6", name: "Whitley Neill", img: "https://www.weinwolf.de/thumbnail/18/2c/90/1762875323/813010_2511_1920x1920.webp", desc: "Der Whitley Neill Distillers Cut Gin zeigt einen klassischen London Dry Stil mit ausgeprägten Wacholdernoten, ergänzt durch die fruchtige Frische getrockneter Orangenschalen." },
+            { id: "list-7", name: "Macaronesian Gin", img: "https://www.weinwolf.de/thumbnail/f4/ef/60/1765184721/006151_2512_1920x1920.webp", desc: "Kanarischer Gin, der mit in Vulkangestein gefiltertem Regenwasser und mit Botanikern von den Kanarischen Inseln hergestellt wird. Ein Super-Premium-Gin mit unendlicher Wasserreinheit!" },
             { id: "list-8", name: "Engine Gin", img: "https://www.weinwolf.de/thumbnail/5b/e4/36/1721218031/713108_2407_1920x1920.png", desc: "100% italienischer Bio-Gin, handgefertigt in Italien mit Salbei und Rosenblättern aus dem Piemont, sizilianischen Zitronen, Wacholder aus der Toskana. Verkauft in einer ikonischen Blechdose." },
-            { id: "list-9", name: "Sazerac Rye", img: "https://www.weinwolf.de/thumbnail/e6/f0/f3/1721916351/860006_2407_1920x1920.png", desc: "Der Rye Whiskey beeindruckt mit süßen Malzdüften, saftigen Orangen, Nelken, Anis und Bourbonvanille in der Nase. Am Gaumen entfaltet er eine dichte Textur mit kraftvollen Getreidenoten." }, 
-            { id: "list-10", name: "Eagle Rare", img: "https://www.weinwolf.de/thumbnail/c9/77/63/1721916351/860005_2407_1920x1920.png", desc: "Der seltene Adler reift 10 Jahre lang in seinem neuen Weißeichefass. Der Adler besticht durch dichte Vanillenoten in der Nase, untermalt von Karamell, Nüssen und Honig." }, 
+            { id: "list-10", name: "Eagle Rare", img: "https://www.weinwolf.de/thumbnail/c9/77/63/1721916351/860005_2407_1920x1920.png", desc: "Der seltene Adler reift 10 Jahre lang in seinem neuen Weißeichefass. Der Adler besticht durch dichte Vanillenoten in der Nase, untermalt von Karamell, Nüssen und Honig." },
             { id: "list-11", name: "The Busker", img: "https://www.weinwolf.de/thumbnail/dd/92/b6/1721218029/713134_2407_1920x1920.png", desc: "The Busker Triple Cask Triple Smooth ist ein außergewöhnlicher Blend aus hochwertigem Single Grain und einem sehr hohen Anteil an Single Malt und Single Pot Still. Sein Körper ist unverkennbar vollmundig." },
-            { id: "list-12", name: "Botran 12", img: "https://www.weinwolf.de/thumbnail/91/7e/37/1717246648/719119_2402_1920x1920.png", desc: "Hochwertiger gereifter Rum aus Guatemala, destilliert aus Virgin Sugar Cane Honey. Weich, komplex und ideal für Premium-Cocktails." }, 
-            { id: "list-13", name: "Romana Sambuca", img: "https://www.weinwolf.de/thumbnail/eb/d6/66/1752048327/860011_2507_1920x1920.webp", desc: "Ein authentischer italienischer Sambuca, berühmt für sein weiches Profil und die klassischen Anis-Noten. Wird traditionell 'con la mosca' (mit Kaffeebohnen) genossen." }, 
+            { id: "list-12", name: "Botran 12", img: "https://www.weinwolf.de/thumbnail/91/7e/37/1717246648/719119_2402_1920x1920.png", desc: "Hochwertiger gereifter Rum aus Guatemala, destilliert aus Virgin Sugar Cane Honey. Weich, komplex und ideal für Premium-Cocktails." },
+            { id: "list-13", name: "Romana Sambuca", img: "https://www.weinwolf.de/thumbnail/eb/d6/66/1752048327/860011_2507_1920x1920.webp", desc: "Ein authentischer italienischer Sambuca, berühmt für sein weiches Profil und die klassischen Anis-Noten. Wird traditionell 'con la mosca' (mit Kaffeebohnen) genossen." },
             { id: "list-14", name: "Becherovka", img: "https://www.weinwolf.de/thumbnail/6e/e3/eb/1721210747/825007_2407_1920x1920.png", desc: "Tschechischer Premium-Kräuterlikör, hergestellt nach einer geheimen Rezeptur aus dem Jahr 1807. Bekannt für seine ausgleichenden Noten von Nelken, Zimt und Gewürzen." },
-            { id: "list-15", name: "Sober Spirits", img: "https://www.weinwolf.de/thumbnail/c9/12/b7/1739356548/853001_2502_1920x1920.webp", desc: "Alkoholfreie Spirituosen-Alternative der Extraklasse. Perfekt, um die Intensität und das Aroma klassischer Drinks ohne Alkohol zu erleben." }, 
-            { id: "list-16", name: "Dr. Jaglas", img: "https://www.weinwolf.de/thumbnail/15/4d/f2/1769164530/812027_2601_1920x1920.webp", desc: "Apotheker-Kräuterbitter mit Tradition. Handgemacht nach historischen Rezepturen, balanciert mit erlesenen Kräutern, Wurzeln und Blüten." }, 
+            { id: "list-15", name: "Sober Spirits", img: "https://www.weinwolf.de/thumbnail/c9/12/b7/1739356548/853001_2502_1920x1920.webp", desc: "Alkoholfreie Spirituosen-Alternative der Extraklasse. Perfekt, um die Intensität und das Aroma klassischer Drinks ohne Alkohol zu erleben." },
+            { id: "list-16", name: "Dr. Jaglas", img: "https://www.weinwolf.de/thumbnail/15/4d/f2/1769164530/812027_2601_1920x1920.webp", desc: "Apotheker-Kräuterbitter mit Tradition. Handgemacht nach historischen Rezepturen, balanciert mit erlesenen Kräutern, Wurzeln und Blüten." },
             { id: "list-17", name: "Angostura Bitter", img: "https://www.weinwolf.de/thumbnail/f0/cc/f6/1717244522/710102_2105_1920x1920.png", desc: "Der unverzichtbare Klassiker hinter jeder Bar. Wenige Tropfen dieses aromatischen Bitters verleihen Cocktails Tiefe und Komplexität." },
-            { id: "list-18", name: "Rutte Gin", img: "", desc: "Niederländischer Premium-Gin mit langer Handwerkstradition. Perfekte Balance aus klassischen Botanicals." },
-            { id: "list-19", name: "Tamboo Spiced", img: "", desc: "Ein facettenreicher Spiced Rum, abgerundet mit karibischen Gewürzen. Ideal zum Mixen." },
-            { id: "list-20", name: "Corazon Tequila", img: "", desc: "Handwerklicher Tequila aus 100% blauer Weberagave. Authentisch und charakterstark." },
-            { id: "list-21", name: "De Kuyper Liköre", img: "https://www.weinwolf.de/thumbnail/7e/20/6c/1717246871/807056_2207_800x800.png", desc: "DATEN FEHLEN (exkl. Grenadine)" },
-            { id: "list-22", name: "De Kuyper Prebatched", img: "", desc: "DATEN FEHLEN" },
-            { id: "list-23", name: "De Kuyper Sirup", img: "https://www.weinwolf.de/thumbnail/89/9f/32/1717244808/807005_2112Kopie_800x800.png", desc: "DATEN FEHLEN (exkl. Grenadine)" },
-            { id: "list-24", name: "Tia Maria", img: "https://www.weinwolf.de/thumbnail/a2/de/c0/1724922342/713109_2408_1920x1920.png", desc: "Tia Maria entfaltet die Aromen der Karibik. Hergestellt von Illva Saronno, verbindet dieser Likör besten 100% Arabica-Kaffee mit einer sanften Vanillenote und jamaikanischem Rum. Die reiche Intensität des gerösteten Kaffees harmoniert mit den süßen und komplexen Rumnoten. Die Wurzeln dieser Rezeptur basieren auf einem alten jamaikanischen Familienrezept, das über Generationen hinweg weitergegeben wurde. Illva Saronno ist zudem für den Amaretto „Disaronno“ bekannt." },
+            { id: "list-18", name: "Rutte Gin", img: "https://www.weinwolf.de/thumbnail/e8/b6/79/1717246391/807097_2308_1920x1920.png", desc: "Niederländischer Premium-Gin mit langer Handwerkstradition. Perfekte Balance aus klassischen Botanicals." },
+            { id: "list-19", name: "Tamboo Spiced", img: "https://www.weinwolf.de/thumbnail/49/81/47/1717245953/710109_2301_1920x1920.png", desc: "Ein facettenreicher Spiced Rum, abgerundet mit karibischen Gewürzen. Ideal zum Mixen." },
+            { id: "list-20", name: "Corazon Tequila", img: "https://www.weinwolf.de/thumbnail/54/fa/2a/1721916352/860008_2407_1920x1920.png", desc: "Handwerklicher Tequila aus 100% blauer Weberagave. Authentisch und charakterstark." },
+            { id: "list-21", name: "De Kuyper Liköre", img: "https://www.weinwolf.de/thumbnail/7e/20/6c/1717246871/807056_2207_800x800.png", desc: "Holländische Likör-Range mit über 300-jähriger Tradition. Breites Sortiment an klassischen Cocktail-Likören in Barkeeper-Qualität. Hinweis: Grenadine ist von dieser Vereinbarung ausgenommen." },
+            { id: "list-22", name: "De Kuyper Prebatched", img: "", desc: "Vorgemischte Cocktail-Basen von De Kuyper für gleichbleibende Drink-Qualität und schnellen Service in Stoßzeiten. Praxis-Tool für Bars mit hohem Drink-Aufkommen." },
+            { id: "list-23", name: "De Kuyper Sirup", img: "https://www.weinwolf.de/thumbnail/89/9f/32/1717244808/807005_2112Kopie_800x800.png", desc: "Alkoholfreie Sirup-Range von De Kuyper für klassische und moderne Cocktail-Rezepturen. Hinweis: Grenadine ist von dieser Vereinbarung ausgenommen." },
+            { id: "list-24", name: "Tia Maria", img: "https://www.weinwolf.de/thumbnail/a2/de/c0/1724922342/713109_2408_1920x1920.png", desc: "Tia Maria entfaltet die Aromen der Karibik. Hergestellt von Illva Saronno, verbindet dieser Likör besten 100% Arabica-Kaffee mit einer sanften Vanillenote und jamaikanischem Rum. Die reiche Intensität des gerösteten Kaffees harmoniert mit den süßen und komplexen Rumnoten. Die Wurzeln dieser Rezeptur basieren auf einem alten jamaikanischen Familienrezept, das über Generationen hinweg weitergegeben wurde. Illva Saronno ist zudem für den Amaretto Disaronno bekannt." },
             { id: "list-25", name: "Angostura 1919", img: "https://www.weinwolf.de/thumbnail/63/47/7c/1773129955/710209_2510_MitGP_1920x1920.webp", desc: "In der Nase vielschichtig mit verführerischen Noten von Kokos, Karamell und Vanille. Am Gaumen sehr weich mit warmen Aromen von Schokolade, Nugat, Mandelcreme und Honig, wunderschöne Länge mit zartem Schmelz." },
             { id: "list-26", name: "Peachtree", img: "https://www.weinwolf.de/thumbnail/ea/3b/31/1717244593/807010_2112_800x800.png", desc: "Weich und fruchtig erscheint diese Spirituose am Gaumen. Neben einer feinen Süße ist ein schmeichelhaftes Wechselspiel von bittereren wie auch erfrischend sauren Aromen zu verspüren. Ein absoluter Klassiker!" }
         ];
 
+        // rvKPIs: v9.3.2 — Vier Artikelnummern aus Excel-Master "Liste" korrigiert:
+        //   • Myers's Rum:    860004 → 860003
+        //   • Romana Sambuca: 860011 → 860010
+        //   • The Busker:     713134 → 713133
+        //   • Botran Rum:     719119 → 719118
+        // Außerdem: Notiz-Feld aus KPI-PDF 27.04.2026 ergänzt (Tooltip-Hinweise).
         const rvKPIs = [
-            { name: "Zubrowka Biala Vodka", art: "825002", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
+            { name: "Zubrowka Biala Vodka", art: "825002", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 200, notiz: "Fokus auf Gläser" },
             { name: "Zubrowka Czarna Vodka 40%", art: "825032", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.00, s2_qty: 150 },
             { name: "Pampero Blanco & Especial", art: "240003", unit: "1,0l", s1_val: 0.50, s1_qty: 100, s2_val: 2.00, s2_qty: 300 },
-            { name: "Buffalo Trace Bourbon", art: "860001", unit: "1,0l", s1_val: 2.00, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
+            { name: "Buffalo Trace Bourbon", art: "860001", unit: "1,0l", s1_val: 2.00, s1_qty: 100, s2_val: 2.50, s2_qty: 200, notiz: "Sonderdeals auf Anfrage" },
             { name: "Sazerac Rye", art: "860006", unit: "0,7l", s1_val: 1.50, s1_qty: 50, s2_val: 2.50, s2_qty: 150 },
-            { name: "Martin Millers Gin", art: "009500", unit: "1,0l", s1_val: 2.50, s1_qty: 100, s2_val: 5.00, s2_qty: 200 },
+            { name: "Martin Millers Gin", art: "009500", unit: "1,0l", s1_val: 2.50, s1_qty: 100, s2_val: 5.00, s2_qty: 200, notiz: "Maximum vermeiden" },
             { name: "Whitley Neill Range", art: "813045", unit: "0,7l", s1_val: 1.00, s1_qty: 100, s2_val: 2.00, s2_qty: 200 },
             { name: "Disaronno Originale & Velvet", art: "713127", unit: "1,0l", s1_val: 1.00, s1_qty: 50, s2_val: 1.50, s2_qty: 200 },
-            { name: "Lunazul Tequila", art: "833000", unit: "0,7l", s1_val: 1.00, s1_qty: 50, s2_val: 1.20, s2_qty: 100 },
-            { name: "Angostura Rum", art: "710293", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.50, s2_qty: 200 },
-            { name: "Myers's Rum", art: "860004", unit: "1,0l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Lunazul Tequila", art: "833000", unit: "0,7l", s1_val: 1.00, s1_qty: 50, s2_val: 1.20, s2_qty: 100, notiz: "Sonderdeals auf Anfrage" },
+            { name: "Angostura Rum", art: "710293", unit: "1,0l", s1_val: 1.50, s1_qty: 100, s2_val: 2.50, s2_qty: 200, notiz: "Sonderdeals auf Anfrage" },
+            { name: "Myers's Rum", art: "860003", unit: "1,0l", s1_val: 1.00, s1_qty: 50 },
             { name: "Eagle Rare", art: "860005", unit: "0,7l", s1_val: 2.00, s1_qty: 50 },
-            { name: "Romana Sambuca", art: "860011", unit: "1,0l", s1_val: 0.50, s1_qty: 50 },
+            { name: "Romana Sambuca", art: "860010", unit: "1,0l", s1_val: 0.50, s1_qty: 50 },
             { name: "Benvenuti Limoncello", art: "230028", unit: "0,7l", s1_val: 0.50, s1_qty: 50 },
             { name: "Rutte Gin", art: "807097", unit: "0,7l", s1_val: 0.50, s1_qty: 50 },
             { name: "Amaro Montenegro", art: "200054", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
             { name: "Select Aperitivo", art: "200038", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
-            { name: "Botran Rum", art: "719119", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "Botran Rum", art: "719118", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
             { name: "Tamboo Spiced", art: "710109", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
             { name: "Cucielo Vermouth", art: "814003", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
             { name: "Tia Maria", art: "713109", unit: "0,7l", s1_val: 1.00, s1_qty: 100 },
             { name: "Engine Gin", art: "713108", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
-            { name: "The Busker", art: "713134", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
+            { name: "The Busker", art: "713133", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
             { name: "Corazon Tequila", art: "860008", unit: "0,7l", s1_val: 1.00, s1_qty: 50 },
             { name: "De Kuyper Liköre", art: "807020", unit: "0,7l", s1_val: 0.50, s1_qty: 200 },
             { name: "De Kuyper Prebatched", art: "807078", unit: "1,0l", s1_val: 1.00, s1_qty: 50 },
-            { name: "Peachtree", art: "807010", unit: "0,7l", s1_val: 0.50, s1_qty: 100, s2_val: 1.00, s2_qty: 200 },
+            { name: "Peachtree", art: "807010", unit: "0,7l", s1_val: 0.50, s1_qty: 100, s2_val: 1.00, s2_qty: 200, notiz: "Fokus auf Gläser" },
             { name: "De Kuyper Sirup (exkl. Grenadine)", art: "807068", unit: "0,7l", s1_val: 0.25, s1_qty: 500 }
         ];
 
         let contractMonths = 0;
         let currentSigTarget = null;
 
-        window.addEventListener('beforeprint', () => {
-            const pouringGrid = document.getElementById('pouring-grid');
-            if (pouringGrid.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
-                pouringGrid.style.display = 'none'; document.getElementById('h3-pouring').style.display = 'none';
+        // ============================================================
+        // ANZEIGE-/RENDER-HELFER (löst alte beforeprint/afterprint-Hooks ab)
+        // v9.3.7: Tooltip-Inhalte werden temporär geleert, weil html2canvas
+        //         an Sonderzeichen (Surrogate-Pairs, polnische Buchstaben etc.)
+        //         in den langen Beschreibungstexten scheitern kann.
+        //         Restore stellt sie nach dem Render wieder her.
+        // ============================================================
+        function prepareForRender() {
+            document.body.classList.add('pdf-rendering');
+            const pGrid = document.getElementById('pouring-grid');
+            const lGrid = document.getElementById('listing-grid');
+            if (pGrid.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
+                pGrid.classList.add('pdf-hidden');
+                document.getElementById('h3-pouring').classList.add('pdf-hidden');
             }
-            const listingGrid = document.getElementById('listing-grid');
-            if (listingGrid.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
-                listingGrid.style.display = 'none'; document.getElementById('h3-listing').style.display = 'none';
+            if (lGrid.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
+                lGrid.classList.add('pdf-hidden');
+                document.getElementById('h3-listing').classList.add('pdf-hidden');
             }
             document.querySelectorAll('.grid-item').forEach(item => {
                 const cb = item.querySelector('input[type="checkbox"]');
-                if (cb && !cb.checked) { item.style.display = 'none'; item.classList.add('hidden-for-print'); }
+                if (cb && !cb.checked) item.classList.add('pdf-hidden');
             });
+
+            // v9.3.7: Tooltip-Inhalte temporär leeren — Surrogate-Pair-Schutz
+            document.querySelectorAll('.tooltip').forEach(t => {
+                if (t.dataset.pdfBackup === undefined) {
+                    t.dataset.pdfBackup = t.innerHTML;
+                    t.innerHTML = '';
+                }
+            });
+        }
+        function restoreAfterRender() {
+            document.body.classList.remove('pdf-rendering');
+            document.querySelectorAll('.pdf-hidden').forEach(el => el.classList.remove('pdf-hidden'));
+            const audit = document.getElementById('pdf-audit-footer');
+            if (audit) audit.remove();
+
+            // v9.3.7: Tooltip-Inhalte zurückspielen
+            document.querySelectorAll('.tooltip').forEach(t => {
+                if (t.dataset.pdfBackup !== undefined) {
+                    t.innerHTML = t.dataset.pdfBackup;
+                    delete t.dataset.pdfBackup;
+                }
+            });
+
+            // v9.3.7: html2canvas-Renderer-Reste aufräumen.
+            // Die Bibliothek erzeugt off-screen-Iframes/Container, die manchmal
+            // nach einem Fehler im DOM verbleiben und das UI blockieren können.
+            document.querySelectorAll('iframe').forEach(iframe => {
+                const style = iframe.getAttribute('style') || '';
+                const cls = iframe.className || '';
+                if (cls.includes('html2canvas') ||
+                    style.includes('html2canvas') ||
+                    style.includes('-99999') ||
+                    (iframe.id && iframe.id.includes('html2canvas'))) {
+                    iframe.remove();
+                }
+            });
+            document.querySelectorAll('.html2canvas-container').forEach(el => el.remove());
+        }
+        // Browser-Druck-Hooks für Rückwärtskompatibilität (Cmd+P / Strg+P).
+        // Hinweis: window.print() lässt sich aus beforeprint nicht zuverlässig abbrechen.
+        // Wir markieren ungültige Felder visuell, damit der Nutzer sieht, was fehlt — der
+        // Hauptweg bleibt der „PDF erstellen"-Button mit echter Validierungsblockade.
+        window.addEventListener('beforeprint', () => {
+            // Markiert fehlende Felder, gibt aber keinen Alert (würde aus dem Hook eh nichts blockieren)
+            try { validateBeforeRender_silent(); } catch(e) {}
+            prepareForRender();
         });
-        window.addEventListener('afterprint', () => {
-            document.getElementById('pouring-grid').style.display = ''; document.getElementById('h3-pouring').style.display = '';
-            document.getElementById('listing-grid').style.display = ''; document.getElementById('h3-listing').style.display = '';
-            document.querySelectorAll('.hidden-for-print').forEach(item => { item.style.display = ''; item.classList.remove('hidden-for-print'); });
+        window.addEventListener('afterprint', restoreAfterRender);
+
+        // Stille Variante der Validierung — markiert nur Felder, ohne Alert
+        function validateBeforeRender_silent() {
+            const requiredFields = ['ww-employee-name','partner-name','partner-outlets',
+                                    'date-start','date-end','sig-location','sig-date'];
+            requiredFields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && !el.value.trim()) el.classList.add('input-error');
+                else if (el) el.classList.remove('input-error');
+            });
+        }
+
+        // Autosave-Indikator
+        function flashAutosaveIndicator() {
+            const el = document.getElementById('autosave-indicator');
+            if (!el) return;
+            el.classList.add('visible');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(() => el.classList.remove('visible'), 1200);
+        }
+
+        // ============================================================
+        // parseNum für deutsche Zahlennotation
+        //   "1.500,00" → 1500.00   (deutsch: Komma-Dezimal, Punkt-Tausender)
+        //   "1500.00"  → 1500.00   (englisch: Punkt-Dezimal)
+        //   "1.500"    → 1500      (deutsch: Punkt-Tausender, kein Dezimalteil)
+        //   "1,5"      → 1.5       (deutsch: Komma-Dezimal)
+        //   "1500"     → 1500      (plain)
+        // v9.3.1: Heuristik gegen die alte „1.500 → 1.5"-Falle ergänzt.
+        // ============================================================
+        const parseNum = (v) => {
+            if (typeof v === 'number') return isFinite(v) ? v : 0;
+            const s = String(v).trim().replace(/\s|€/g, '');
+            if (!s) return 0;
+            // Fall 1: Deutsche Notation mit Dezimal-Komma (1-2 Nachkommastellen)
+            if (/,\d{1,2}$/.test(s)) {
+                return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+            }
+            // Fall 2: Punkt(e) als reine Tausendertrenner — z.B. "1.500" oder "1.500.000"
+            // Charakteristisch: nach jedem Punkt folgen GENAU 3 Ziffern, kein Komma im String.
+            if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) {
+                return parseFloat(s.replace(/\./g, '')) || 0;
+            }
+            // Fall 3: Englische Notation oder plain — Punkt = Dezimaltrenner
+            return parseFloat(s.replace(/,/g, '')) || 0;
+        };
+
+        // Money-Math in Cents (Integer) – verhindert Float-Drift
+        const toCents = (euros) => Math.round(parseNum(euros) * 100);
+        const fromCents = (cents) => cents / 100;
+
+        // Einheitliche Euro-Formatierung (deutsch)
+        const eurFormat = new Intl.NumberFormat('de-DE', {
+            style: 'currency', currency: 'EUR',
+            minimumFractionDigits: 2, maximumFractionDigits: 2
         });
+        const formatEur = (euros) => eurFormat.format(euros);
+        const formatEurCents = (cents) => eurFormat.format(cents / 100);
+
+        // ============================================================
+        // FIX: korrekte Monats-Berechnung (vorher: +1 Off-by-one)
+        // Liefert volle Kalendermonate zwischen zwei Daten.
+        // 01.01. → 31.12. = 12 Monate ; 15.01. → 15.02. = 1 Monat ; 15.01. → 16.02. = 2 Monate
+        // ============================================================
+        function monthsBetween(start, end) {
+            if (!(start instanceof Date) || !(end instanceof Date)) return 0;
+            if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return 0;
+            let months = (end.getFullYear() - start.getFullYear()) * 12
+                       + (end.getMonth() - start.getMonth());
+            // Strikt größer: gleicher Tag bedeutet "exakt X Monate", nicht X+1
+            if (end.getDate() > start.getDate()) months += 1;
+            return Math.max(0, months);
+        }
 
         const getItemName = (id) => { const item = pouringItems.find(p => p.id === id) || listingItems.find(l => l.id === id); return item ? item.name : id; };
 
@@ -451,7 +898,7 @@
                         row.classList.add('is-active', 'locked');
                         const missingNames = missingIds.map(id => getItemName(id)).join(', ');
                         if (missingAlertSpan) {
-                            missingAlertSpan.innerHTML = `🔒 Potenzial: ${item.val.toFixed(2)} €. Fehlend: ${missingNames}`;
+                            missingAlertSpan.innerHTML = `Inaktiv — Potenzial: ${item.val.toFixed(2)} €. Noch fehlend: ${missingNames}`;
                             let textColor = 'var(--ww-orange)';
                             if(item.cssClass === 'highlight-gin') textColor = 'var(--pkg-gin)';
                             if(item.cssClass === 'highlight-rum') textColor = 'var(--pkg-rum)';
@@ -472,21 +919,61 @@
             updateTotals();
         }
 
+        // v9.3.3: Snap-Helfer — Start-Datum auf den 1., End-Datum auf den letzten des Monats.
+        // Verhindert "krumme" Vertragslaufzeiten wie 15.05. → 14.06.
+        function snapDateToMonthStart(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input || !input.value) return;
+            const d = new Date(input.value);
+            if (isNaN(d.getTime())) return;
+            if (d.getDate() !== 1) {
+                d.setDate(1);
+                input.value = toISODateLocal(d);
+            }
+        }
+        function snapDateToMonthEnd(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input || !input.value) return;
+            const d = new Date(input.value);
+            if (isNaN(d.getTime())) return;
+            // Letzter Tag eines Monats: ersten des Folgemonats - 1 Tag
+            const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+            if (d.getDate() !== lastDay) {
+                d.setDate(lastDay);
+                input.value = toISODateLocal(d);
+            }
+        }
+        // Date → "YYYY-MM-DD" lokal (vermeidet UTC-Verschiebung bei toISOString)
+        function toISODateLocal(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${dd}`;
+        }
+
         function validateDuration() {
-            const start = new Date(document.getElementById('date-start').value);
-            const end = new Date(document.getElementById('date-end').value);
+            // v9.3.3: Vor jeder Validierung erst auf Monatsgrenzen snappen.
+            snapDateToMonthStart('date-start');
+            snapDateToMonthEnd('date-end');
+
+            const startStr = document.getElementById('date-start').value;
+            const endStr = document.getElementById('date-end').value;
             const display = document.getElementById('duration-display');
-            
-            if (start && end && end > start) {
-                const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+
+            const start = startStr ? new Date(startStr) : null;
+            const end = endStr ? new Date(endStr) : null;
+            const months = monthsBetween(start, end);
+
+            if (months > 0) {
                 contractMonths = months;
                 display.innerText = `${months} Monate`;
                 display.classList.remove('hidden');
-            } else { contractMonths = 0; display.classList.add('hidden'); }
+            } else {
+                contractMonths = 0;
+                display.classList.add('hidden');
+            }
             rvKPIs.forEach((_, i) => calcRV(i));
         }
-
-        const parseNum = (v) => parseFloat(String(v).replace(/[^-0-9,.]/g, '').replace(',', '.')) || 0;
 
         function calcRV(idx) {
             const qtyInput = document.getElementById(`rv-qty-${idx}`);
@@ -511,7 +998,7 @@
                         let percent = (totalQty / item.s2_qty) * 100;
                         progBar.style.width = (percent > 100 ? 100 : percent) + '%';
                         if (isTier2) {
-                            progBar.style.background = 'var(--ww-green-dark)'; progTxt.innerText = `👑 Stufe 2 erreicht`; progTxt.style.color = 'var(--ww-green-dark)'; progTxt.style.fontWeight = 'bold';
+                            progBar.style.background = 'var(--ww-green-dark)'; progTxt.innerText = `Stufe 2 erreicht`; progTxt.style.color = 'var(--ww-green-dark)'; progTxt.style.fontWeight = 'bold';
                         } else {
                             let missing = Math.ceil(item.s2_qty - totalQty);
                             progBar.style.background = 'var(--ww-orange)'; progTxt.innerText = `Noch ${missing} Flaschen`; progTxt.style.color = 'var(--ww-border)'; progTxt.style.fontWeight = 'normal';
@@ -520,17 +1007,42 @@
                 }
             }
 
-            priceInput.placeholder = (qtyPa > 0) ? limit.toFixed(2) : "";
+            // Placeholder in deutscher Notation anzeigen
+            priceInput.placeholder = (qtyPa > 0) ? limit.toFixed(2).replace('.', ',') : "";
             const paCell = document.getElementById(`rv-total-pa-${idx}`);
             const durCell = document.getElementById(`rv-total-dur-${idx}`);
 
-            if (price > limit) {
-                priceInput.classList.add('input-error'); paCell.innerText = "LIMIT!"; durCell.innerText = "---";
-            } else {
+            // v9.3.8: Mindestmengen-Check (analog WKZ).
+            // Bezieht sich auf totalQty (Menge × Laufzeit/12), damit Verträge unter 12 Monaten
+            // korrekt anteilig geprüft werden. Beispiel: 200 Fl. p.a. bei 6 Mon. = totalQty 100.
+            const isUnderMin = qtyPa > 0 && totalQty < item.s1_qty;
+
+            if (isUnderMin) {
+                qtyInput.classList.add('input-error');
                 priceInput.classList.remove('input-error');
-                const totalPa = qtyPa * price;
-                const totalDur = contractMonths > 0 ? (totalPa / 12) * contractMonths : 0;
-                paCell.innerText = totalPa.toFixed(2) + " €"; durCell.innerText = totalDur.toFixed(2) + " €";
+                paCell.innerText = "MIN!"; durCell.innerText = "---";
+                paCell.dataset.cents = "0"; durCell.dataset.cents = "0";
+                paCell.dataset.error = "min";
+            } else if (price > limit + 0.0001) {
+                // Mini-Toleranz gegen Float-Vergleichs-Artefakte
+                qtyInput.classList.remove('input-error');
+                priceInput.classList.add('input-error');
+                paCell.innerText = "LIMIT!"; durCell.innerText = "---";
+                paCell.dataset.cents = "0"; durCell.dataset.cents = "0";
+                paCell.dataset.error = "limit";
+            } else {
+                qtyInput.classList.remove('input-error');
+                priceInput.classList.remove('input-error');
+                delete paCell.dataset.error;
+                // Cents-Mathematik
+                const totalPaCents = Math.round(qtyPa * price * 100);
+                const totalDurCents = contractMonths > 0
+                    ? Math.round(totalPaCents * contractMonths / 12)
+                    : 0;
+                paCell.innerText = formatEurCents(totalPaCents);
+                durCell.innerText = formatEurCents(totalDurCents);
+                paCell.dataset.cents = String(totalPaCents);
+                durCell.dataset.cents = String(totalDurCents);
             }
             updateTotals();
         }
@@ -553,128 +1065,554 @@
             updateTotals();
         }
 
+        // v9.3.3: LIMIT-Check für WKZ-Vergütung analog RV.
+        // Eingabe über dem Default-Maximum aus wkzItems[idx].val wird abgelehnt.
+        function validateWkzVal(idx) {
+            const input = document.getElementById(`wkz-val-${idx}`);
+            const maxVal = wkzItems[idx].val;
+            const entered = parseNum(input.value);
+
+            if (input.value === "") {
+                input.classList.remove('input-error');
+                delete input.dataset.error;
+            } else if (entered > maxVal + 0.0001) {
+                input.classList.add('input-error');
+                input.dataset.error = "1";
+            } else {
+                input.classList.remove('input-error');
+                delete input.dataset.error;
+            }
+            updateTotals();
+        }
+
         function updateTotals() {
-            let subPa = 0, subDur = 0, subWkz = 0, totalProjectedLiters = 0;
-            
+            let subPaCents = 0, subDurCents = 0, subWkzCents = 0;
+            let totalProjectedLiters = 0;
+
             rvKPIs.forEach((_, i) => {
                 const row = document.getElementById(`rv-row-${i}`);
                 if (row && row.classList.contains('is-active')) {
-                    const qty = parseNum(document.getElementById(`rv-qty-${i}`).value);
-                    const paTxt = document.getElementById(`rv-total-pa-${i}`).innerText;
-                    const durTxt = document.getElementById(`rv-total-dur-${i}`).innerText;
-                    const volMultiplier = parseFloat(document.getElementById(`rv-unit-${i}`).value) || 1;
-                    
-                    if (!paTxt.includes("LIMIT")) {
-                        subPa += parseNum(paTxt); subDur += parseNum(durTxt);
-                        if (qty > 0 && contractMonths > 0) totalProjectedLiters += ((qty * volMultiplier) / 12) * contractMonths;
+                    const paCell = document.getElementById(`rv-total-pa-${i}`);
+                    const durCell = document.getElementById(`rv-total-dur-${i}`);
+                    // v9.3.8: Beide Fehler-Arten (limit + min) blockieren die Aufnahme in die Summe
+                    if (!paCell.dataset.error) {
+                        subPaCents  += parseInt(paCell.dataset.cents  || "0", 10);
+                        subDurCents += parseInt(durCell.dataset.cents || "0", 10);
+                        const qty = parseNum(document.getElementById(`rv-qty-${i}`).value);
+                        const volMultiplier = parseFloat(document.getElementById(`rv-unit-${i}`).value) || 1;
+                        if (qty > 0 && contractMonths > 0) {
+                            totalProjectedLiters += ((qty * volMultiplier) / 12) * contractMonths;
+                        }
                     }
                 }
             });
-            document.getElementById('subtotal-rv-pa').innerText = subPa.toFixed(2) + " €";
-            document.getElementById('subtotal-rv-dur').innerText = subDur.toFixed(2) + " €";
-            
+            document.getElementById('subtotal-rv-pa').innerText = formatEurCents(subPaCents);
+            document.getElementById('subtotal-rv-dur').innerText = formatEurCents(subDurCents);
+
             wkzItems.forEach((_, i) => {
                 const row = document.getElementById(`wkz-row-${i}`);
                 if (row && row.classList.contains('is-active') && !row.classList.contains('locked')) {
-                    subWkz += parseNum(document.getElementById(`wkz-val-${i}`).value);
+                    const valInput = document.getElementById(`wkz-val-${i}`);
+                    // v9.3.3: LIMIT-Verstöße fließen nicht in die Summe ein (analog RV)
+                    if (valInput && valInput.dataset.error !== "1") {
+                        subWkzCents += toCents(valInput.value);
+                    }
                 }
             });
-            document.getElementById('subtotal-wkz').innerText = subWkz.toFixed(2) + " €";
-            
-            const grandTotal = subDur + subWkz;
-            document.getElementById('grand-total').innerText = grandTotal.toFixed(2) + " €";
-            document.getElementById('avg-invest').innerText = totalProjectedLiters > 0 ? `Ø Investition: ${(grandTotal / totalProjectedLiters).toFixed(2)} € / Liter` : "0.00 € / Liter";
+            document.getElementById('subtotal-wkz').innerText = formatEurCents(subWkzCents);
+
+            const grandTotalCents = subDurCents + subWkzCents;
+            document.getElementById('grand-total').innerText = formatEurCents(grandTotalCents);
+            document.getElementById('avg-invest').innerText = totalProjectedLiters > 0
+                ? `Ø Investition: ${formatEurCents(Math.round(grandTotalCents / totalProjectedLiters))} / Liter`
+                : `Ø Investition: ${formatEur(0)} / Liter`;
         }
 
-        function toggleDistributor() {
-            const distInput = document.getElementById('distributor-name');
-            const directCheck = document.getElementById('direct-purchase');
-            if (directCheck.checked) {
-                distInput.dataset.savedValue = distInput.value; distInput.value = 'DIREKTBEZUG WEIN WOLF'; distInput.style.pointerEvents = 'none'; distInput.style.opacity = '0.7'; distInput.classList.remove('input-error');
-            } else {
-                distInput.value = (distInput.dataset.savedValue && distInput.dataset.savedValue !== 'DIREKTBEZUG WEIN WOLF') ? distInput.dataset.savedValue : ''; distInput.style.pointerEvents = 'auto'; distInput.style.opacity = '1';
-            }
+        // ============================================================
+        // VALIDATION VOR DRUCK / PDF (deutlich strenger als vorher)
+        // ============================================================
+        function hasSignature(canvas) {
+            if (!canvas || !canvas.width || !canvas.height) return false;
+            try {
+                const ctx = canvas.getContext('2d');
+                const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                for (let i = 3; i < data.length; i += 4) {
+                    if (data[i] !== 0) return true;
+                }
+                return false;
+            } catch(e) { return false; }
         }
 
-        function triggerPrint() {
-            const requiredFields = ['ww-employee-name', 'partner-name', 'date-start', 'date-end'];
-            let allGood = true;
-            requiredFields.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el.value.trim()) { el.classList.add('input-error'); allGood = false; }
-                else { el.classList.remove('input-error'); }
+        function validateBeforeRender() {
+            const errors = [];
+
+            // Stammdaten
+            const requiredFields = [
+                { id: 'ww-employee-name', label: 'Name AD-Mitarbeiter' },
+                { id: 'partner-name',     label: 'Name Partner / Firma' },
+                { id: 'partner-outlets',  label: 'Outlets / Standorte' },
+                { id: 'date-start',       label: 'Startdatum' },
+                { id: 'date-end',         label: 'Enddatum' },
+                { id: 'sig-location',     label: 'Ort' },
+                { id: 'sig-date',         label: 'Unterschriftsdatum' }
+            ];
+            requiredFields.forEach(f => {
+                const el = document.getElementById(f.id);
+                if (!el.value.trim()) {
+                    el.classList.add('input-error');
+                    errors.push(f.label + ' fehlt');
+                } else {
+                    el.classList.remove('input-error');
+                }
             });
-            if (allGood) window.print(); else alert("Bitte füllen Sie die Stammdaten aus.");
+
+            // Laufzeit muss positiv sein
+            if (contractMonths <= 0) errors.push('Laufzeit ungültig (Enddatum ≤ Startdatum)');
+
+            // Bezugsweg
+            const directCheck = document.getElementById('direct-purchase').checked;
+            const distInput = document.getElementById('distributor-name');
+            if (!directCheck && !distInput.value.trim()) {
+                distInput.classList.add('input-error');
+                errors.push('Bezugsweg: Fachgroßhändler eintragen oder „Direktbezug" aktivieren');
+            } else {
+                distInput.classList.remove('input-error');
+            }
+
+            // Mindestens eine RV-Zeile mit Menge UND Vergütung
+            let hasFilledRv = false;
+            document.querySelectorAll('.rv-row.is-active').forEach(row => {
+                const qty = parseNum(row.querySelector('input[id^="rv-qty-"]')?.value);
+                const pr  = parseNum(row.querySelector('input[id^="rv-price-"]')?.value);
+                if (qty > 0 && pr > 0) hasFilledRv = true;
+            });
+            if (!hasFilledRv) errors.push('Mindestens eine Rebatte-Zeile mit Menge und Vergütung erforderlich');
+
+            // v9.3.8: Differenzierte Fehlerprüfung — LIMIT-Verstöße und MIN-Unterschreitungen separat
+            const rvErrors = { limit: 0, min: 0 };
+            document.querySelectorAll('[id^="rv-total-pa-"]').forEach(c => {
+                if (c.dataset.error === 'limit') rvErrors.limit++;
+                else if (c.dataset.error === 'min') rvErrors.min++;
+            });
+            if (rvErrors.limit > 0) errors.push(`${rvErrors.limit} RV-Position(en) überschreiten die zulässige Vergütung`);
+            if (rvErrors.min > 0) errors.push(`${rvErrors.min} RV-Position(en) erreichen die Mindestmenge nicht`);
+
+            // v9.3.3: Keine LIMIT-Verstöße (WKZ — analog RV)
+            const wkzLimitCount = Array.from(document.querySelectorAll('[id^="wkz-val-"]'))
+                .filter(c => c.dataset.error === "1").length;
+            if (wkzLimitCount > 0) errors.push(`${wkzLimitCount} WKZ-Position(en) überschreiten das maximale Budget`);
+
+            // Beide Unterschriften
+            if (!hasSignature(document.getElementById('sig-ww')))    errors.push('Unterschrift Wein Wolf fehlt');
+            if (!hasSignature(document.getElementById('sig-kunde'))) errors.push('Unterschrift Partner fehlt');
+
+            if (errors.length > 0) {
+                alert('Vertrag noch nicht unterschriftsreif:\n\n• ' + errors.join('\n• '));
+                return false;
+            }
+            return true;
         }
 
+        // Alter Eintrittspunkt – behält den Browser-Druck-Pfad bei
+        function triggerPrint() {
+            if (validateBeforeRender()) window.print();
+        }
+
+        // ============================================================
+        // SIGNATUR – mit devicePixelRatio und Originalauflösung
+        // ============================================================
+        const sigOriginals = {}; // id -> hochaufgelöstes PNG-DataURL
         const modal = document.getElementById('sig-modal');
         const mCanvas = document.getElementById('modal-canvas');
-        const mCtx = mCanvas.getContext('2d');
+        let mCtx = null;
         let drawing = false;
 
+        function setupHiDPICanvas(canvas, cssWidth, cssHeight) {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width  = Math.round(cssWidth  * dpr);
+            canvas.height = Math.round(cssHeight * dpr);
+            canvas.style.width  = cssWidth  + 'px';
+            canvas.style.height = cssHeight + 'px';
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr); // Zeichnen erfolgt in CSS-Pixeln, intern in Geräte-Pixeln
+            return ctx;
+        }
+
         function openSigModal(targetId) {
-            currentSigTarget = targetId; modal.style.display = 'flex';
-            mCanvas.width = mCanvas.offsetWidth; mCanvas.height = mCanvas.offsetHeight;
+            currentSigTarget = targetId;
+            modal.style.display = 'flex';
+            // Layout muss erst stehen, sonst sind offsetWidth/Height 0
+            requestAnimationFrame(() => {
+                const cssW = mCanvas.offsetWidth;
+                const cssH = mCanvas.offsetHeight;
+                mCtx = setupHiDPICanvas(mCanvas, cssW, cssH);
+                mCtx.strokeStyle = "#1B4D3E";
+                mCtx.lineWidth = 3;
+                mCtx.lineCap = "round";
+                // Wenn schon eine Unterschrift existiert: zur Bearbeitung wieder einblenden
+                if (sigOriginals[targetId]) {
+                    const img = new Image();
+                    img.onload = () => mCtx.drawImage(img, 0, 0, cssW, cssH);
+                    img.src = sigOriginals[targetId];
+                }
+            });
+        }
+
+        function getPos(e) {
+            const r = mCanvas.getBoundingClientRect();
+            return {
+                x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left,
+                y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top
+            };
+        }
+        mCanvas.addEventListener('mousedown', (e) => {
+            if (!mCtx) return;
+            drawing = true; mCtx.beginPath();
+            const p = getPos(e); mCtx.moveTo(p.x, p.y);
+        });
+        mCanvas.addEventListener('mousemove', (e) => {
+            if (!drawing || !mCtx) return;
+            const p = getPos(e); mCtx.lineTo(p.x, p.y); mCtx.stroke();
+        });
+        window.addEventListener('mouseup', () => drawing = false);
+        mCanvas.addEventListener('touchstart', (e) => {
+            if (!mCtx) return;
+            drawing = true; mCtx.beginPath();
+            const p = getPos(e); mCtx.moveTo(p.x, p.y);
+            e.preventDefault();
+        }, {passive: false});
+        mCanvas.addEventListener('touchmove', (e) => {
+            if (!drawing || !mCtx) return;
+            const p = getPos(e); mCtx.lineTo(p.x, p.y); mCtx.stroke();
+            e.preventDefault();
+        }, {passive: false});
+
+        function clearModalCanvas() {
+            if (!mCtx) return;
+            // canvas.width-Reset cleart und entfernt die Skalierung – also neu setzen:
+            const cssW = mCanvas.offsetWidth;
+            const cssH = mCanvas.offsetHeight;
+            mCtx = setupHiDPICanvas(mCanvas, cssW, cssH);
             mCtx.strokeStyle = "#1B4D3E"; mCtx.lineWidth = 3; mCtx.lineCap = "round";
         }
-        function getPos(e) { const r = mCanvas.getBoundingClientRect(); return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top }; }
-        mCanvas.addEventListener('mousedown', (e) => { drawing = true; mCtx.beginPath(); const p = getPos(e); mCtx.moveTo(p.x, p.y); });
-        mCanvas.addEventListener('mousemove', (e) => { if(!drawing) return; const p = getPos(e); mCtx.lineTo(p.x, p.y); mCtx.stroke(); });
-        window.addEventListener('mouseup', () => drawing = false);
-        mCanvas.addEventListener('touchstart', (e) => { drawing = true; mCtx.beginPath(); const p = getPos(e); mCtx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
-        mCanvas.addEventListener('touchmove', (e) => { if(!drawing) return; const p = getPos(e); mCtx.lineTo(p.x, p.y); mCtx.stroke(); e.preventDefault(); }, {passive: false});
-        function clearModalCanvas() { mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height); }
-        function saveSignature() {
-            const prev = document.getElementById(currentSigTarget);
-            prev.width = prev.offsetWidth; prev.height = prev.offsetHeight;
-            prev.getContext('2d').drawImage(mCanvas, 0, 0, prev.width, prev.height);
-            modal.style.display = 'none'; clearModalCanvas();
+        function clearActiveSignature() {
+            if (currentSigTarget) {
+                delete sigOriginals[currentSigTarget];
+                const prev = document.getElementById(currentSigTarget);
+                if (prev) {
+                    const ctx = prev.getContext('2d');
+                    ctx.clearRect(0, 0, prev.width, prev.height);
+                    prev.width = 0; prev.height = 0;
+                }
+            }
+            clearModalCanvas();
         }
 
-        function hardReset() { if(confirm("Alle Eingaben löschen?")) { localStorage.removeItem('ww_contract_v8_3'); window.location.reload(); } }
+        function saveSignature() {
+            if (!mCtx) { modal.style.display = 'none'; return; }
+            // Hochauflösendes Original sichern (für JSON-Export / PDF-Embedding)
+            sigOriginals[currentSigTarget] = mCanvas.toDataURL('image/png');
 
-        function exportDraft() {
+            // Preview auf der Vertragsseite rendern, ebenfalls mit DPR
+            const prev = document.getElementById(currentSigTarget);
+            const cssW = prev.offsetWidth || 250;
+            const cssH = prev.offsetHeight || 120;
+            const ctx = setupHiDPICanvas(prev, cssW, cssH);
+            const img = new Image();
+            img.onload = () => ctx.drawImage(img, 0, 0, cssW, cssH);
+            img.src = sigOriginals[currentSigTarget];
+
+            modal.style.display = 'none';
+            mCtx = null; drawing = false;
+            scheduleAutosave();
+        }
+
+        // ============================================================
+        // STORAGE: Autosave + Entwurf-Export/Import
+        // ============================================================
+        const STORAGE_KEY = 'ww_contract_v9_3_autosave';
+        const LEGACY_STORAGE_KEY = 'ww_contract_v9_2_autosave'; // Fallback für bestehende Drafts
+        let autosaveTimer = null;
+
+        function collectState() {
             const state = {};
             document.querySelectorAll('input:not([type="button"]):not([type="file"]), select, textarea').forEach(el => {
                 if (el.id) state[el.id] = el.type === 'checkbox' ? el.checked : el.value;
             });
-            state['sig-ww-data'] = document.getElementById('sig-ww').toDataURL(); state['sig-kunde-data'] = document.getElementById('sig-kunde').toDataURL();
-            let customerName = document.getElementById('partner-name').value.trim().replace(/[^a-zA-Z0-9äöüÄÖÜß]/g, '_');
-            const fileName = `WW_Entwurf_${customerName || 'Unbenannt'}_${new Date().toISOString().split('T')[0]}.json`;
-            const blob = new Blob([JSON.stringify(state)], {type: "application/json"});
-            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+            // Hochauflösende Originale, NICHT die kleinen Previews
+            state['_sig_ww_original']    = sigOriginals['sig-ww']    || null;
+            state['_sig_kunde_original'] = sigOriginals['sig-kunde'] || null;
+            // Bezugsweg-Backup (echter Distributor-Name, falls Direktbezug aktiv ist)
+            const distInput = document.getElementById('distributor-name');
+            if (distInput && distInput.dataset.savedValue) {
+                state['_distributor_saved'] = distInput.dataset.savedValue;
+            }
+            return state;
+        }
+
+        function applyState(state) {
+            // v9.3.2 Migration: Sazerac wechselt von list-9 → pour-5.
+            // Alte Drafts (v9.3.1 und v9.2), in denen der User list-9 angekreuzt hatte,
+            // müssen das Häkchen auf den neuen Pouring-Code übertragen.
+            if (state['list-9'] === true) {
+                state['pour-5'] = true;
+                delete state['list-9'];
+            }
+
+            // v9.3.5 Migration: sig-location-date wurde aufgeteilt in sig-location + sig-date.
+            // Alter Wert wandert komplett ins Ort-Feld — wenn der User damals
+            // "Stuttgart, 06.05.2026" eingetippt hatte, kann er das Datum manuell ergänzen.
+            if (state['sig-location-date'] && !state['sig-location']) {
+                state['sig-location'] = state['sig-location-date'];
+                delete state['sig-location-date'];
+            }
+
+            document.querySelectorAll('input:not([type="button"]):not([type="file"]), select, textarea').forEach(el => {
+                if (el.id && state[el.id] !== undefined) {
+                    if (el.type === 'checkbox') el.checked = state[el.id];
+                    else el.value = state[el.id];
+                }
+            });
+            // Bezugsweg-Backup VOR toggleDistributor wiederherstellen
+            if (state['_distributor_saved']) {
+                const distInput = document.getElementById('distributor-name');
+                if (distInput) distInput.dataset.savedValue = state['_distributor_saved'];
+            }
+            // Signaturen wiederherstellen
+            [['sig-ww', '_sig_ww_original'], ['sig-kunde', '_sig_kunde_original']].forEach(([id, key]) => {
+                if (state[key]) {
+                    sigOriginals[id] = state[key];
+                    const prev = document.getElementById(id);
+                    const cssW = prev.offsetWidth || 250;
+                    const cssH = prev.offsetHeight || 120;
+                    const ctx = setupHiDPICanvas(prev, cssW, cssH);
+                    const img = new Image();
+                    img.onload = () => ctx.drawImage(img, 0, 0, cssW, cssH);
+                    img.src = state[key];
+                }
+            });
+            if (document.getElementById('direct-purchase').checked) toggleDistributor();
+            validateDuration();
+            syncAllMatrices();
+            // v9.3.3: Nach Draft-Reload Höhen der WKZ-Task-Textareas anpassen
+            document.querySelectorAll('.wkz-task-area').forEach(autoGrowTextarea);
+        }
+
+        function autosave() {
+            try {
+                const payload = { timestamp: Date.now(), state: collectState() };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+                flashAutosaveIndicator();
+            } catch(e) {
+                console.warn('Autosave fehlgeschlagen:', e);
+            }
+        }
+
+        function scheduleAutosave() {
+            clearTimeout(autosaveTimer);
+            autosaveTimer = setTimeout(autosave, 1500);
+        }
+
+        function tryRestoreAutosave() {
+            try {
+                let raw = localStorage.getItem(STORAGE_KEY);
+                let fromLegacy = false;
+                // v9.3.1: Fallback auf v9.2-Autosave, falls neuer Key leer ist
+                if (!raw) {
+                    raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+                    fromLegacy = !!raw;
+                }
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (!data || !data.state) return;
+                const ageMin = Math.max(1, Math.round((Date.now() - data.timestamp) / 60000));
+                const prefix = fromLegacy ? '(aus v9.2) ' : '';
+                if (confirm(`${prefix}Auto-Speicher von vor ${ageMin} Min. gefunden. Wiederherstellen?`)) {
+                    applyState(data.state);
+                    if (fromLegacy) {
+                        // Migration: einmaliger Re-Save unter neuem Key, alten Key räumen
+                        autosave();
+                        localStorage.removeItem(LEGACY_STORAGE_KEY);
+                    }
+                } else {
+                    localStorage.removeItem(STORAGE_KEY);
+                    if (fromLegacy) localStorage.removeItem(LEGACY_STORAGE_KEY);
+                }
+            } catch(e) { console.warn('Autosave-Wiederherstellung fehlgeschlagen:', e); }
+        }
+
+        function hardReset() {
+            if (confirm("Alle Eingaben löschen? Der Auto-Speicher und die letzte Prüfsummen-Spur werden ebenfalls entfernt.")) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(STORAGE_KEY + '_lastsigned');
+                localStorage.removeItem(LEGACY_STORAGE_KEY);
+                localStorage.removeItem(LEGACY_STORAGE_KEY + '_lastsigned');
+                window.location.reload();
+            }
+        }
+
+        function exportDraft() {
+            const state = collectState();
+            const customerName = (document.getElementById('partner-name').value.trim() || 'Unbenannt')
+                .replace(/[^a-zA-Z0-9äöüÄÖÜß]/g, '_');
+            const fileName = `WW_Entwurf_${customerName}_${new Date().toISOString().split('T')[0]}.json`;
+            const blob = new Blob([JSON.stringify(state, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         function importDraft(event) {
             const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const state = JSON.parse(e.target.result);
-                    document.querySelectorAll('input:not([type="button"]):not([type="file"]), select, textarea').forEach(el => {
-                        if (el.id && state[el.id] !== undefined) { if (el.type === 'checkbox') el.checked = state[el.id]; else el.value = state[el.id]; }
-                    });
-                    ['sig-ww', 'sig-kunde'].forEach(id => {
-                        if(state[id+'-data']) {
-                            const canvas = document.getElementById(id); const img = new Image();
-                            img.onload = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height); };
-                            img.src = state[id+'-data'];
-                        }
-                    });
-                    if (document.getElementById('direct-purchase').checked) toggleDistributor();
-                    validateDuration(); syncAllMatrices();
-                } catch(err) { alert("Fehler beim Laden."); }
+            reader.onload = (e) => {
+                try { applyState(JSON.parse(e.target.result)); }
+                catch(err) { alert("Fehler beim Laden des Entwurfs."); }
             };
             reader.readAsText(file);
         }
 
-        window.onload = () => {
+        function toggleDistributor() {
+            const distInput = document.getElementById('distributor-name');
+            const directCheck = document.getElementById('direct-purchase');
+            const DIRECT_LABEL = 'DIREKTBEZUG WEIN WOLF';
+
+            if (directCheck.checked) {
+                // Nur sichern, wenn aktuell ein echter Wert drinsteht (nicht das Direktbezug-Label).
+                // Verhindert, dass beim Toggle nach Draft-Reload der Backup-Wert mit dem Label überschrieben wird.
+                if (distInput.value && distInput.value !== DIRECT_LABEL) {
+                    distInput.dataset.savedValue = distInput.value;
+                }
+                distInput.value = DIRECT_LABEL;
+                distInput.style.pointerEvents = 'none';
+                distInput.style.opacity = '0.7';
+                distInput.classList.remove('input-error');
+            } else {
+                distInput.value = (distInput.dataset.savedValue && distInput.dataset.savedValue !== DIRECT_LABEL)
+                    ? distInput.dataset.savedValue : '';
+                distInput.style.pointerEvents = 'auto';
+                distInput.style.opacity = '1';
+            }
+            scheduleAutosave();
+        }
+
+        // ============================================================
+        // PDF-GENERIERUNG mit SHA-256-Hash der Vertragsdaten
+        // ============================================================
+        async function sha256Hex(str) {
+            const data = new TextEncoder().encode(str);
+            const buf = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(buf))
+                .map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function buildHashableSnapshot() {
+            // Reine Vertrags-Daten – ohne Signatur-Bilder und ohne Audit-Felder
+            const snap = collectState();
+            delete snap['_sig_ww_original'];
+            delete snap['_sig_kunde_original'];
+            // Stabile, reproduzierbare Reihenfolge
+            return JSON.stringify(snap, Object.keys(snap).sort());
+        }
+
+        async function generatePDF() {
+            if (!validateBeforeRender()) return;
+
+            const btn = document.querySelector('.print-btn');
+            const originalText = btn.innerText;
+            btn.innerText = 'Erstelle PDF…';
+            btn.disabled = true;
+
+            let footerEl = null;
+            try {
+                // 1) Inhalts-Hash über die strukturierten Vertragsdaten
+                const snapshotJson = buildHashableSnapshot();
+                const hash = await sha256Hex(snapshotJson);
+                const ts = new Date();
+
+                // 2) Audit-Footer einsetzen (wird mit gerendert UND zeigt den Hash)
+                footerEl = document.createElement('div');
+                footerEl.id = 'pdf-audit-footer';
+                footerEl.innerHTML = `
+                    <strong>AUDIT-INFORMATION</strong><br>
+                    Erstellt: ${ts.toLocaleString('de-DE')} (${ts.toISOString()})<br>
+                    SHA-256 (Inhalt): <span class="hash-value">${hash}</span><br>
+                    Tool: Wein Wolf Kooperationsvereinbarung v9.3.9 · 
+                    Gerät: ${navigator.userAgent.substring(0, 90)}…
+                `;
+                document.body.appendChild(footerEl);
+
+                // 3) Render-Modus aktivieren (versteckt UI, blendet leere Grids aus)
+                prepareForRender();
+
+                // 4) Dateiname
+                const partnerName = (document.getElementById('partner-name').value.trim() || 'Vertrag')
+                    .replace(/[^a-zA-Z0-9äöüÄÖÜß]/g, '_');
+                const dateStr = ts.toISOString().split('T')[0];
+                const filename = `WW_Kooperation_${partnerName}_${dateStr}.pdf`;
+
+                // 5) PDF erzeugen
+                // v9.3.4: windowWidth: 1200 zwingt html2canvas zum Desktop-Layout,
+                // damit die PDF-Ausgabe auch dann sauber bleibt, wenn der User
+                // das Tool gerade auf dem Handy oder iPad-Portrait nutzt.
+                const opt = {
+                    margin: [10, 10, 12, 10],
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.95 },
+                    html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#F2F6F3', windowWidth: 1200 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.legal-block', '#grand-total-container', '#pdf-audit-footer'] }
+                };
+                await html2pdf().set(opt).from(document.body).save();
+
+                // 6) Audit-Spur lokal hinterlegen
+                try {
+                    localStorage.setItem(STORAGE_KEY + '_lastsigned', JSON.stringify({
+                        hash, timestamp: ts.toISOString(), filename,
+                        snapshot: JSON.parse(snapshotJson)
+                    }));
+                } catch(e) {}
+            } catch(err) {
+                console.error('PDF-Erstellung fehlgeschlagen:', err);
+                alert(
+                    'PDF-Erstellung fehlgeschlagen.\n\n' +
+                    'Technische Meldung: ' + (err.message || String(err)) + '\n\n' +
+                    'Deine Eingaben sind erhalten. Du kannst es erneut versuchen.'
+                );
+            } finally {
+                // v9.3.7: Cleanup darf NIEMALS selbst fehlschlagen — sonst bleibt das UI gesperrt.
+                // Im Worst Case: Page-Reload als Notausgang (Auto-Save bleibt erhalten).
+                try {
+                    if (footerEl) footerEl.remove();
+                    restoreAfterRender();
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                } catch(cleanupErr) {
+                    console.error('Cleanup nach PDF-Fehler ist selbst fehlgeschlagen:', cleanupErr);
+                    if (confirm(
+                        'Das Tool konnte sich nach dem PDF-Fehler nicht sauber zurücksetzen.\n\n' +
+                        'Empfehlung: Seite neu laden. Dein Auto-Speicher bleibt erhalten und ' +
+                        'der Vertrag wird beim nächsten Öffnen wiederhergestellt.\n\n' +
+                        'OK = Seite neu laden\n' +
+                        'Abbrechen = Versuchen, manuell weiterzuarbeiten'
+                    )) {
+                        window.location.reload();
+                    } else {
+                        // Letzter Versuch: Mindestens Button und Body in funktionsfähigen Zustand bringen
+                        document.body.classList.remove('pdf-rendering');
+                        if (btn) { btn.innerText = originalText; btn.disabled = false; }
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
             const pGrid = document.getElementById('pouring-grid');
             const lGrid = document.getElementById('listing-grid');
-            
+
             const generateGridItem = (item) => `
                 <div class="grid-item">
-                    <div class="bottle-placeholder">${item.img ? `<img src="${item.img}">` : '<span style="font-size:7px;color:#aaa;">BILD FEHLT</span>'}</div>
+                    <div class="bottle-placeholder">${item.img ? `<img src="${item.img}" loading="lazy">` : '<span style="font-size:7px;color:#aaa;">BILD FEHLT</span>'}</div>
                     <div class="product-label">
                         ${item.name}
                         <div class="info-container" onclick="toggleTooltip(this, event)">
@@ -682,35 +1620,41 @@
                             <div class="tooltip">${item.desc}</div>
                         </div>
                     </div>
-                    <input type="checkbox" id="${item.id}" onchange="syncAllMatrices()">
+                    <input type="checkbox" id="${item.id}" onchange="syncAllMatrices(); scheduleAutosave();">
                 </div>`;
 
-            pouringItems.forEach(item => { pGrid.innerHTML += generateGridItem(item); });
-            listingItems.forEach(item => { lGrid.innerHTML += generateGridItem(item); });
+            // innerHTML einmalig setzen statt += in der Schleife (Reflow-Vermeidung)
+            pGrid.innerHTML = pouringItems.map(generateGridItem).join('');
+            lGrid.innerHTML = listingItems.map(generateGridItem).join('');
             
             const rvBody = document.getElementById('rv-body');
-            rvKPIs.forEach((item, i) => {
-                let tt = `<strong>Ziel:</strong> ${item.s1_qty} Flaschen<br>Fix: ${item.s1_val.toFixed(2)}€`;
-                if(item.s2_val) tt = `Stufe 1: ${item.s1_val.toFixed(2)}€ (ab ${item.s1_qty} Flaschen)<br>Stufe 2: ${item.s2_val.toFixed(2)}€ (ab ${item.s2_qty} Flaschen)`;
-                rvBody.innerHTML += `
+            const rvRows = rvKPIs.map((item, i) => {
+                let tt = `<strong>Ziel:</strong> ${item.s1_qty} Flaschen<br>Fix: ${formatEur(item.s1_val)}`;
+                if(item.s2_val) tt = `Stufe 1: ${formatEur(item.s1_val)} (ab ${item.s1_qty} Fl.)<br>Stufe 2: ${formatEur(item.s2_val)} (ab ${item.s2_qty} Fl.)`;
+                // v9.3.2: Notiz aus KPI-PDF im Tooltip ergänzen, wenn vorhanden
+                // v9.3.5: Emoji entfernt — html2canvas-Range-Bug bei Surrogate-Pairs vermeiden
+                if(item.notiz) tt += `<br><br><strong>Hinweis:</strong> <em>${item.notiz}</em>`;
+                return `
                     <tr id="rv-row-${i}" class="rv-row">
                         <td>
                             ${item.name}
                             <div style="font-size:9px; color:#888; margin-top:2px; font-family:monospace;">Art: ${item.art}</div>
                             <div class="info-container" onclick="toggleTooltip(this, event)"><span class="info-icon">i</span><div class="tooltip">${tt}</div></div>
                         </td>
-                        <td><input type="number" id="rv-qty-${i}" oninput="calcRV(${i})" placeholder="${item.s1_qty}">${item.s2_val ? `<div class="progress-bg" id="rv-prog-bg-${i}"><div class="progress-bar" id="rv-prog-${i}"></div></div><div class="progress-text" id="rv-prog-txt-${i}"></div>` : ''}</td>
-                        <td><select id="rv-unit-${i}" onchange="updateTotals()"><option value="1.0" ${item.unit=='1,0l'?'selected':''}>1,0l</option><option value="0.7" ${item.unit=='0,7l'?'selected':''}>0,7l</option></select></td>
-                        <td><input type="text" id="rv-price-${i}" oninput="calcRV(${i})"></td>
-                        <td id="rv-total-pa-${i}" class="total-cell">0.00 €</td>
-                        <td id="rv-total-dur-${i}" class="projection-cell">0.00 €</td>
+                        <td><input type="number" min="0" id="rv-qty-${i}" oninput="calcRV(${i}); scheduleAutosave();" placeholder="${item.s1_qty}">${item.s2_val ? `<div class="progress-bg" id="rv-prog-bg-${i}"><div class="progress-bar" id="rv-prog-${i}"></div></div><div class="progress-text" id="rv-prog-txt-${i}"></div>` : ''}</td>
+                        <td><select id="rv-unit-${i}" onchange="updateTotals(); scheduleAutosave();"><option value="1.0" ${item.unit=='1,0l'?'selected':''}>1,0l</option><option value="0.7" ${item.unit=='0,7l'?'selected':''}>0,7l</option></select></td>
+                        <td><input type="text" id="rv-price-${i}" oninput="calcRV(${i}); scheduleAutosave();" inputmode="decimal"></td>
+                        <td id="rv-total-pa-${i}" class="total-cell">${formatEur(0)}</td>
+                        <td id="rv-total-dur-${i}" class="projection-cell">${formatEur(0)}</td>
                     </tr>`;
             });
+            rvBody.innerHTML = rvRows.join('');
 
             const wkzBody = document.getElementById('wkz-body');
-            wkzItems.forEach((item, i) => {
+            const wkzRows = wkzItems.map((item, i) => {
                 let tt = `<strong>Mindest-Ziel:</strong> ${item.minQty} Flaschen${item.note ? '<br><span style="color:var(--ww-orange)">' + item.note + '</span>' : ''}`;
-                wkzBody.innerHTML += `
+                tt += `<br><br><strong>Max. Budget:</strong> <em>${formatEur(item.val)}</em>`;
+                return `
                     <tr id="wkz-row-${i}" class="wkz-row">
                         <td>
                             <strong style="color: var(--ww-green-dark); font-family: Montserrat;">${item.name}</strong>
@@ -718,15 +1662,44 @@
                             <div class="info-container" onclick="toggleTooltip(this, event)"><span class="info-icon">i</span><div class="tooltip">${tt}</div></div>
                             <span id="wkz-missing-${i}" class="missing-alert"></span>
                         </td>
-                        <td><input type="text" id="wkz-task-${i}" value="${item.task}"></td>
-                        <td><input type="number" id="wkz-qty-${i}" oninput="validateWkzQty(${i})" placeholder="Mind. ${item.minQty} Fl." title="Bitte vereinbarte Jahresmenge eintragen"></td>
-                        <td><select><option>Nach Umsetzung</option><option>Bei Abschluss</option></select></td>
-                        <td><input type="text" id="wkz-val-${i}" oninput="updateTotals()" value="${item.val.toFixed(2)}"></td>
+                        <td><textarea id="wkz-task-${i}" class="wkz-task-area" rows="1" oninput="autoGrowTextarea(this); scheduleAutosave()">${item.task}</textarea></td>
+                        <td><input type="number" min="0" id="wkz-qty-${i}" oninput="validateWkzQty(${i}); scheduleAutosave();" placeholder="Mind. ${item.minQty} Fl." title="Bitte vereinbarte Jahresmenge eintragen"></td>
+                        <td><select id="wkz-billing-${i}" onchange="scheduleAutosave()"><option>Nach Umsetzung</option><option>Bei Abschluss</option></select></td>
+                        <td><input type="text" id="wkz-val-${i}" oninput="validateWkzVal(${i}); scheduleAutosave();" placeholder="${item.val.toFixed(2).replace('.', ',')}" inputmode="decimal" title="Max. ${formatEur(item.val)}"></td>
                     </tr>`;
             });
+            wkzBody.innerHTML = wkzRows.join('');
+
+            // v9.3.3: Auto-Grow für alle Task-Textareas einmalig nach Render auslösen,
+            // damit lange Default-Texte (z.B. Whiskey Combi) sofort mehrzeilig dargestellt werden.
+            document.querySelectorAll('.wkz-task-area').forEach(autoGrowTextarea);
             
             updateTotals();
-        };
+
+            // Generischer Autosave-Trigger für alle Stammdaten-Felder
+            ['ww-employee-name','partner-name','partner-email','partner-kundennummer',
+             'partner-outlets','date-start','date-end','distributor-name',
+             'sig-location','sig-date','special-agreements'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', scheduleAutosave);
+            });
+
+            // Autosave alle 10 s als Sicherheitsnetz
+            setInterval(autosave, 10000);
+
+            // v9.3.4: Bei Window-Resize (z.B. iPad-Rotation, Desktop-Fensterzoom)
+            // die Textarea-Höhen neu berechnen — debounced auf 150ms.
+            let resizeTimer = null;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    document.querySelectorAll('.wkz-task-area').forEach(autoGrowTextarea);
+                }, 150);
+            });
+
+            // Auto-Restore beim Start, falls vorhanden
+            tryRestoreAutosave();
+        });
     </script>
 </body>
 </html>
