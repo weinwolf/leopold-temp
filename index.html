@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wein Wolf - Kooperationsvereinbarung v9.3.9 (Pro Edition)</title>
+    <title>Wein Wolf - Kooperationsvereinbarung v9.4.0 (Pro Edition)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -18,6 +18,7 @@
             --pkg-gin: #E45959;
             --pkg-rum: #C77943;
             --pkg-whiskey: #38705C;
+            --pkg-angostura: #8E3B46;
         }
         * { box-sizing: border-box; font-family: 'Source Sans Pro', sans-serif; }
         body { line-height: 1.5; color: var(--ww-green-dark); margin: 40px; background-color: var(--ww-green-light); }
@@ -50,6 +51,8 @@
         .bottle-placeholder.highlight-rum::after { background: var(--pkg-rum); }
         .bottle-placeholder.highlight-whiskey { border-color: var(--pkg-whiskey); }
         .bottle-placeholder.highlight-whiskey::after { background: var(--pkg-whiskey); }
+        .bottle-placeholder.highlight-angostura { border-color: var(--pkg-angostura); }
+        .bottle-placeholder.highlight-angostura::after { background: var(--pkg-angostura); }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; }
         th { font-family: 'Montserrat', sans-serif; background-color: var(--ww-green-dark); color: #fff; border: 1px solid var(--ww-green-dark); padding: 10px; font-size: 10px; text-transform: uppercase; text-align: left; }
@@ -66,6 +69,17 @@
         input::placeholder, textarea::placeholder { color: #bbb; font-style: italic; opacity: 0.6; }
         .input-error { background-color: rgba(179, 45, 45, 0.1) !important; color: var(--ww-error) !important; border-bottom: 2px solid var(--ww-error) !important; }
         .input-success { background-color: rgba(46, 125, 50, 0.1) !important; color: var(--ww-success) !important; border-bottom: 2px solid var(--ww-success) !important; font-weight: bold; }
+
+        /* v9.4.0: Sonderkonditionen (Freigabe-Anfrage über Limit) */
+        .input-sk { background-color: rgba(46, 125, 50, 0.10) !important; color: var(--ww-success) !important; border-bottom: 2px solid var(--ww-success) !important; font-weight: bold; }
+        .sk-btn { display: inline-block; margin-top: 6px; background: var(--ww-orange); color: #fff; border: none; border-radius: 4px; padding: 5px 8px; font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; animation: skBlink 1s ease-in-out infinite; }
+        @keyframes skBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+        .sk-status { display: block; margin-top: 6px; font-size: 9px; color: var(--ww-success); line-height: 1.3; }
+        #sk-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 3100; justify-content: center; align-items: center; }
+        #sk-modal .sk-modal-row { margin: 8px 0; font-size: 14px; }
+        #sk-modal label { display: block; margin-top: 18px; margin-bottom: 6px; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ww-green-dark); }
+        #sk-modal input[type="text"] { width: 100%; border: 1px solid var(--ww-orange); border-radius: 4px; padding: 10px; font-size: 14px; background: #fff; }
+        #sonderkonditionen-section { margin-top: 0; }
         
         .total-cell { font-weight: 700; color: var(--ww-orange); text-align: right; }
         .projection-cell { font-weight: 600; color: var(--ww-green-dark); text-align: right; background: rgba(228, 89, 89, 0.05); }
@@ -76,7 +90,7 @@
         /* iPad Optimiertes Tooltip System */
         .info-container { display: inline-block; position: relative; margin-left: 5px; cursor: pointer; padding: 8px; margin-top: -5px; vertical-align: middle; }
         .info-icon { color: var(--ww-orange); font-weight: bold; border: 1.5px solid var(--ww-orange); border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; transition: all 0.2s; pointer-events: none; }
-        .tooltip { visibility: hidden; width: 250px; background: var(--ww-green-dark); color: #fff; border-radius: 6px; padding: 12px; position: absolute; z-index: 100; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 11px; border-left: 4px solid var(--ww-orange); text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: normal; text-transform: none; }
+        .tooltip { visibility: hidden; width: 250px; max-width: 92vw; background: var(--ww-green-dark); color: #fff; border-radius: 6px; padding: 12px; position: absolute; z-index: 100; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 11px; border-left: 4px solid var(--ww-orange); text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: normal; text-transform: none; }
         .info-container.is-active .tooltip { visibility: visible; opacity: 1; }
         .info-container.is-active .info-icon { background: var(--ww-orange); color: #fff; }
 
@@ -365,10 +379,25 @@
         </div>
     </div>
 
+    <div id="sk-modal" class="print-hide">
+        <div class="modal-content" style="max-width:520px; text-align:left;">
+            <h2 style="font-family:Montserrat; color:var(--ww-green-dark); margin-top:0;">Sonderkondition anfragen</h2>
+            <div class="sk-modal-row">Produkt: <strong id="sk-produkt"></strong> (<span id="sk-typ"></span>)</div>
+            <div class="sk-modal-row">Standard-Kondition: <strong id="sk-standard"></strong></div>
+            <div class="sk-modal-row">Angefragt: <strong id="sk-wunsch" style="color:var(--ww-orange);"></strong></div>
+            <label for="sk-genehmigt">Genehmigt durch (Vorgesetzte/r)</label>
+            <input type="text" id="sk-genehmigt" placeholder="Name / Initialen des Vorgesetzten">
+            <div class="modal-btns">
+                <button type="button" class="btn-action btn-clear" onclick="cancelSk()">Abbrechen</button>
+                <button type="button" class="btn-action btn-save" onclick="saveSk()">Speichern</button>
+            </div>
+        </div>
+    </div>
+
     <div class="header">
         <div class="logo-area"><img src="https://www.weinwolf.de/bundles/weinwolftheme/storefront/img/logo_header.svg" alt="WEIN WOLF"></div>
         <h1>Kooperationsvereinbarung</h1>
-        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v9.3.9 PRO EDITION</div>
+        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v9.4.0 PRO EDITION</div>
     </div>
 
     <div class="partner-section">
@@ -464,6 +493,25 @@
 
     <h3>Sondervereinbarungen</h3>
     <textarea id="special-agreements" class="custom-textarea" placeholder="Individuelle Absprachen, Glaswaren, POS-Material, Event-Support..."></textarea>
+
+    <div id="sonderkonditionen-section" style="display:none;">
+        <h3>Sonderkonditionen (Freigaben)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 30%;">Produkt</th>
+                    <th style="width: 10%;">Typ</th>
+                    <th style="width: 22%;">Standard</th>
+                    <th style="width: 20%;">Sonderkondition</th>
+                    <th style="width: 18%;">Genehmigt durch</th>
+                </tr>
+            </thead>
+            <tbody id="sk-tbody"></tbody>
+        </table>
+        <div class="wkz-notice">
+            <strong>Hinweis:</strong> Sonderkonditionen weichen vom Standard-KPI ab und sind ausschließlich nach Freigabe durch den genannten Vorgesetzten gültig.
+        </div>
+    </div>
 
     <div class="legal-block">
         <strong>§1</strong> Der Partner wird die vereinbarten Produkte im Vertragszeitraum und bis zur vereinbarten Zielmenge ausschenken, auf der Getränkekarte listen, sowie in der Bar sichtbar präsentieren.<br><br>
@@ -575,11 +623,45 @@
         function toggleTooltip(el, e) {
             e.stopPropagation();
             const isActive = el.classList.contains('is-active');
-            document.querySelectorAll('.info-container').forEach(c => c.classList.remove('is-active'));
-            if(!isActive) el.classList.add('is-active');
+            // Beim Schließen alle Inline-Positionskorrekturen zurücksetzen
+            document.querySelectorAll('.info-container').forEach(c => {
+                c.classList.remove('is-active');
+                const t = c.querySelector('.tooltip');
+                if (t) { t.style.transform = ''; t.style.bottom = ''; t.style.top = ''; }
+            });
+            if (!isActive) {
+                el.classList.add('is-active');
+                const tip = el.querySelector('.tooltip');
+                // v9.3.10: Tooltip nach dem Einblenden in den sichtbaren Bereich klemmen.
+                // In Tabellenspalten (Spalte 1, nah am linken Rand) ragte die zentrierte
+                // 250px-Box sonst über den Viewport hinaus und landete off-screen.
+                if (tip) requestAnimationFrame(() => clampTooltipToViewport(tip));
+            }
+        }
+        function clampTooltipToViewport(tip) {
+            const pad = 8;
+            const vw = document.documentElement.clientWidth;
+            let rect = tip.getBoundingClientRect();
+            // Horizontal: Box sitzt via translateX(-50%) zentriert — bei Überlauf seitlich verschieben
+            let shift = 0;
+            if (rect.left < pad) shift = pad - rect.left;
+            else if (rect.right > vw - pad) shift = (vw - pad) - rect.right;
+            if (shift !== 0) {
+                tip.style.transform = `translateX(calc(-50% + ${Math.round(shift)}px))`;
+            }
+            // Vertikal: würde die Box oben aus dem Fenster ragen, klappt sie nach unten auf
+            rect = tip.getBoundingClientRect();
+            if (rect.top < pad) {
+                tip.style.bottom = 'auto';
+                tip.style.top = '125%';
+            }
         }
         document.addEventListener('click', () => {
-            document.querySelectorAll('.info-container').forEach(c => c.classList.remove('is-active'));
+            document.querySelectorAll('.info-container').forEach(c => {
+                c.classList.remove('is-active');
+                const t = c.querySelector('.tooltip');
+                if (t) { t.style.transform = ''; t.style.bottom = ''; t.style.top = ''; }
+            });
         });
 
         // v9.3.3: Auto-Grow für Textareas (WKZ-Task-Spalte).
@@ -616,7 +698,7 @@
             { name: "Cucielo Vermouth", art: "814003", req: ["list-5"], val: 250, task: "Vermouth Switch", minQty: 75, note: "", label: "", cssClass: "" },
             { name: "Disaronno Originale", art: "713127", req: ["list-0"], val: 100, task: "Cocktail Drink Activation", minQty: 100, note: "Wichtig: Drink Aktivierung", label: "", cssClass: "" },
             { name: "Tia Maria Switch", art: "713109", req: ["list-24"], val: 300, task: "Kaffeelikör Switch", minQty: 100, note: "", label: "", cssClass: "" },
-            { name: "Angostura Bitters", art: "710102", req: ["list-17", "list-25"], val: 100, task: "Listung & Aktivierung Bitters Range + 1919", minQty: 36, note: "Wichtig: Drink Aktivierung (je 12 Fl.)", label: "", cssClass: "" },
+            { name: "Angostura Bitters", art: "710102", req: ["list-17", "list-25"], val: 100, task: "Listung & Aktivierung Bitter Range (3 Qualitäten, 36 Fl.) + Angostura Rum 1919 (12 Fl.)", minQty: 48, note: "36× Bitter Range (3 Qualitäten) + 12× Angostura Rum 1919 · Drink Aktivierung wichtig", label: "ZIEL: ANGOSTURA", cssClass: "highlight-angostura" },
             { name: "Gin Package", art: "xxxxx (Paket)", req: ["list-8", "list-7", "pour-8"], val: 1500, task: "Listung Engine / Macaronesian / Martin Millers", minQty: 150, note: "(3/3 Gelistet)", label: "ZIEL: GIN", cssClass: "highlight-gin" },
             { name: "Rum Combi Strategy", art: "xxxxx (Paket)", req: ["pour-2", "pour-4", "pour-3", "list-25"], val: 150, task: "Listung Pampero / Angostura 3Y / Myers's plus Drink 1919", minQty: 100, note: "Wichtig: Drink Aktivierung", label: "ZIEL: RUM", cssClass: "highlight-rum" },
             { name: "Whiskey Combi Strategy", art: "xxxxx (Paket)", req: ["pour-5", "list-10", "list-11", "pour-1"], val: 150, task: "Pouring Sazerac & Buffalo Trace + Listung Eagle Rare / The Busker", minQty: 100, note: "Wichtig: Drink Aktivierung", label: "ZIEL: WHISKEY", cssClass: "highlight-whiskey" }
@@ -705,6 +787,138 @@
 
         let contractMonths = 0;
         let currentSigTarget = null;
+
+        // ============================================================
+        // v9.4.0: SONDERKONDITIONEN (Freigabe über Standard-Limit)
+        // Schlüssel: "rv-<idx>" / "wkz-<idx>". Eintrag = genehmigte Sonderkondition.
+        // ============================================================
+        let sonderkonditionen = {};
+        let skModalCtx = null;
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        // Aktuelles RV-Limit für eine Zeile (berücksichtigt Stufe 2)
+        function currentRvLimit(idx) {
+            const item = rvKPIs[idx];
+            const qtyPa = parseNum(document.getElementById(`rv-qty-${idx}`).value);
+            const effectiveMonths = contractMonths > 0 ? contractMonths : 12;
+            const totalQty = (qtyPa / 12) * effectiveMonths;
+            let limit = item.s1_val;
+            if (item.s2_val && totalQty >= item.s2_qty) limit = item.s2_val;
+            return limit;
+        }
+
+        function setSkButton(prefix, idx, show) {
+            const b = document.getElementById(`${prefix}-sk-btn-${idx}`);
+            if (b) b.style.display = show ? 'inline-block' : 'none';
+        }
+        function setSkStatus(prefix, idx, entry) {
+            const s = document.getElementById(`${prefix}-sk-status-${idx}`);
+            if (!s) return;
+            if (entry) {
+                s.style.display = 'block';
+                s.innerHTML = `✓ Sonderkondition · genehmigt durch <strong>${escapeHtml(entry.genehmigtDurch)}</strong> `
+                    + `<a href="#" onclick="removeSk('${prefix}-${idx}'); return false;" style="color:var(--ww-error); margin-left:4px; text-decoration:none; font-weight:700;">✕ entfernen</a>`;
+            } else {
+                s.style.display = 'none';
+                s.innerHTML = '';
+            }
+        }
+
+        function openSkModal(typ, idx) {
+            skModalCtx = { typ, idx };
+            const key = `${typ.toLowerCase()}-${idx}`;
+            let produkt, standardText, wunschText;
+            if (typ === 'RV') {
+                const item = rvKPIs[idx];
+                produkt = item.name;
+                standardText = formatEur(currentRvLimit(idx)) + ' / Fl.';
+                wunschText = formatEur(parseNum(document.getElementById(`rv-price-${idx}`).value)) + ' / Fl.';
+            } else {
+                const item = wkzItems[idx];
+                produkt = item.name;
+                standardText = formatEur(item.val);
+                wunschText = formatEur(parseNum(document.getElementById(`wkz-val-${idx}`).value));
+            }
+            document.getElementById('sk-produkt').innerText = produkt;
+            document.getElementById('sk-typ').innerText = typ;
+            document.getElementById('sk-standard').innerText = standardText;
+            document.getElementById('sk-wunsch').innerText = wunschText;
+            const existing = sonderkonditionen[key];
+            document.getElementById('sk-genehmigt').value = existing ? existing.genehmigtDurch : '';
+            document.getElementById('sk-modal').style.display = 'flex';
+        }
+
+        function cancelSk() {
+            document.getElementById('sk-modal').style.display = 'none';
+            skModalCtx = null;
+        }
+
+        function saveSk() {
+            if (!skModalCtx) { document.getElementById('sk-modal').style.display = 'none'; return; }
+            const genehmigt = document.getElementById('sk-genehmigt').value.trim();
+            if (!genehmigt) {
+                alert('Bitte eintragen, wer die Sonderkondition genehmigt hat.');
+                return;
+            }
+            const { typ, idx } = skModalCtx;
+            const key = `${typ.toLowerCase()}-${idx}`;
+            let produkt, standardText, wunschText;
+            if (typ === 'RV') {
+                produkt = rvKPIs[idx].name;
+                standardText = formatEur(currentRvLimit(idx)) + ' / Fl.';
+                wunschText = document.getElementById(`rv-price-${idx}`).value.trim();
+            } else {
+                produkt = wkzItems[idx].name;
+                standardText = formatEur(wkzItems[idx].val);
+                wunschText = document.getElementById(`wkz-val-${idx}`).value.trim();
+            }
+            sonderkonditionen[key] = { typ, idx, produkt, standardText, wunschText, genehmigtDurch: genehmigt };
+            document.getElementById('sk-modal').style.display = 'none';
+            skModalCtx = null;
+            // Zeile neu bewerten — die über dem Limit liegende Eingabe wird jetzt akzeptiert
+            if (typ === 'RV') calcRV(idx); else validateWkzVal(idx);
+            renderSonderkonditionen();
+            scheduleAutosave();
+        }
+
+        function removeSk(key) {
+            const entry = sonderkonditionen[key];
+            if (!entry) return;
+            const { typ, idx } = entry;
+            delete sonderkonditionen[key];
+            if (typ === 'RV') calcRV(idx); else validateWkzVal(idx);
+            renderSonderkonditionen();
+            scheduleAutosave();
+        }
+
+        function renderSonderkonditionen() {
+            const section = document.getElementById('sonderkonditionen-section');
+            const tbody = document.getElementById('sk-tbody');
+            if (!section || !tbody) return;
+            const entries = Object.values(sonderkonditionen);
+            if (entries.length === 0) {
+                section.style.display = 'none';
+                tbody.innerHTML = '';
+                return;
+            }
+            section.style.display = 'block';
+            tbody.innerHTML = entries.map(e => {
+                const unit = e.typ === 'RV' ? ' / Fl.' : '';
+                const wunsch = formatEur(parseNum(e.wunschText)) + unit;
+                return `<tr>
+                    <td>${escapeHtml(e.produkt)}</td>
+                    <td>${escapeHtml(e.typ)}</td>
+                    <td>${escapeHtml(e.standardText)}</td>
+                    <td style="font-weight:700; color:var(--ww-orange);">${wunsch}</td>
+                    <td>${escapeHtml(e.genehmigtDurch)}</td>
+                </tr>`;
+            }).join('');
+        }
 
         // ============================================================
         // ANZEIGE-/RENDER-HELFER (löst alte beforeprint/afterprint-Hooks ab)
@@ -876,7 +1090,7 @@
             });
 
             document.querySelectorAll('.bottle-placeholder').forEach(el => {
-                el.classList.remove('highlight-target', 'highlight-gin', 'highlight-rum', 'highlight-whiskey');
+                el.classList.remove('highlight-target', 'highlight-gin', 'highlight-rum', 'highlight-whiskey', 'highlight-angostura');
                 el.removeAttribute('data-label');
             });
 
@@ -903,14 +1117,18 @@
                             if(item.cssClass === 'highlight-gin') textColor = 'var(--pkg-gin)';
                             if(item.cssClass === 'highlight-rum') textColor = 'var(--pkg-rum)';
                             if(item.cssClass === 'highlight-whiskey') textColor = 'var(--pkg-whiskey)';
+                            if(item.cssClass === 'highlight-angostura') textColor = 'var(--pkg-angostura)';
                             missingAlertSpan.style.color = textColor;
                         }
                         missingIds.forEach(id => {
                             const cb = document.getElementById(id);
                             if (cb) {
                                 const placeholder = cb.parentElement.querySelector('.bottle-placeholder');
-                                placeholder.classList.add('highlight-target', item.cssClass);
-                                placeholder.setAttribute('data-label', item.label);
+                                // v9.3.10: leere Tokens würden classList.add() einen SyntaxError werfen
+                                // und syncAllMatrices mitten in der Schleife abbrechen — daher abgesichert.
+                                placeholder.classList.add('highlight-target');
+                                if (item.cssClass) placeholder.classList.add(item.cssClass);
+                                placeholder.setAttribute('data-label', item.label || '');
                             }
                         });
                     } else { row.classList.remove('is-active'); }
@@ -1016,24 +1234,55 @@
             // Bezieht sich auf totalQty (Menge × Laufzeit/12), damit Verträge unter 12 Monaten
             // korrekt anteilig geprüft werden. Beispiel: 200 Fl. p.a. bei 6 Mon. = totalQty 100.
             const isUnderMin = qtyPa > 0 && totalQty < item.s1_qty;
+            const skKey = `rv-${idx}`;
+            const hasSk = !!sonderkonditionen[skKey];
 
             if (isUnderMin) {
                 qtyInput.classList.add('input-error');
-                priceInput.classList.remove('input-error');
+                priceInput.classList.remove('input-error', 'input-sk');
                 paCell.innerText = "MIN!"; durCell.innerText = "---";
                 paCell.dataset.cents = "0"; durCell.dataset.cents = "0";
                 paCell.dataset.error = "min";
-            } else if (price > limit + 0.0001) {
-                // Mini-Toleranz gegen Float-Vergleichs-Artefakte
-                qtyInput.classList.remove('input-error');
-                priceInput.classList.add('input-error');
-                paCell.innerText = "LIMIT!"; durCell.innerText = "---";
-                paCell.dataset.cents = "0"; durCell.dataset.cents = "0";
-                paCell.dataset.error = "limit";
+                setSkButton('rv', idx, false); setSkStatus('rv', idx, null);
+                if (hasSk) { delete sonderkonditionen[skKey]; renderSonderkonditionen(); }
+            } else if (qtyPa > 0 && price > limit + 0.0001) {
+                // v9.3.10: LIMIT-Check an Menge > 0 gekoppelt (wie MIN). Ohne Menge gibt es
+                // keine Auszahlung — eine abgewählte oder leere Zeile mit Rest-Preis darf daher
+                // keinen Phantom-Fehler setzen, der die PDF-Erstellung blockiert.
+                // v9.4.0: Liegt eine genehmigte Sonderkondition vor, wird der Betrag akzeptiert
+                // und ganz normal verrechnet — sonst LIMIT-Fehler plus „Sonderkond. anfragen"-Button.
+                if (hasSk) {
+                    qtyInput.classList.remove('input-error');
+                    priceInput.classList.remove('input-error');
+                    priceInput.classList.add('input-sk');
+                    delete paCell.dataset.error;
+                    const totalPaCents = Math.round(qtyPa * price * 100);
+                    const totalDurCents = contractMonths > 0 ? Math.round(totalPaCents * contractMonths / 12) : 0;
+                    paCell.innerText = formatEurCents(totalPaCents);
+                    durCell.innerText = formatEurCents(totalDurCents);
+                    paCell.dataset.cents = String(totalPaCents);
+                    durCell.dataset.cents = String(totalDurCents);
+                    sonderkonditionen[skKey].wunschText = priceInput.value.trim();
+                    setSkButton('rv', idx, false);
+                    setSkStatus('rv', idx, sonderkonditionen[skKey]);
+                } else {
+                    // Mini-Toleranz gegen Float-Vergleichs-Artefakte
+                    qtyInput.classList.remove('input-error');
+                    priceInput.classList.add('input-error');
+                    priceInput.classList.remove('input-sk');
+                    paCell.innerText = "LIMIT!"; durCell.innerText = "---";
+                    paCell.dataset.cents = "0"; durCell.dataset.cents = "0";
+                    paCell.dataset.error = "limit";
+                    setSkButton('rv', idx, true);
+                    setSkStatus('rv', idx, null);
+                }
             } else {
                 qtyInput.classList.remove('input-error');
-                priceInput.classList.remove('input-error');
+                priceInput.classList.remove('input-error', 'input-sk');
                 delete paCell.dataset.error;
+                setSkButton('rv', idx, false); setSkStatus('rv', idx, null);
+                // Preis wieder im Limit → eine evtl. vorhandene Sonderkondition ist obsolet
+                if (hasSk) { delete sonderkonditionen[skKey]; renderSonderkonditionen(); }
                 // Cents-Mathematik
                 const totalPaCents = Math.round(qtyPa * price * 100);
                 const totalDurCents = contractMonths > 0
@@ -1067,20 +1316,39 @@
 
         // v9.3.3: LIMIT-Check für WKZ-Vergütung analog RV.
         // Eingabe über dem Default-Maximum aus wkzItems[idx].val wird abgelehnt.
+        // v9.4.0: Sonderkondition (Freigabe) hebt den LIMIT-Block für diese Zeile auf.
         function validateWkzVal(idx) {
             const input = document.getElementById(`wkz-val-${idx}`);
             const maxVal = wkzItems[idx].val;
             const entered = parseNum(input.value);
+            const skKey = `wkz-${idx}`;
+            const hasSk = !!sonderkonditionen[skKey];
 
             if (input.value === "") {
-                input.classList.remove('input-error');
+                input.classList.remove('input-error', 'input-sk');
                 delete input.dataset.error;
+                setSkButton('wkz', idx, false); setSkStatus('wkz', idx, null);
+                if (hasSk) { delete sonderkonditionen[skKey]; renderSonderkonditionen(); }
             } else if (entered > maxVal + 0.0001) {
-                input.classList.add('input-error');
-                input.dataset.error = "1";
+                if (hasSk) {
+                    input.classList.remove('input-error');
+                    input.classList.add('input-sk');
+                    delete input.dataset.error;
+                    sonderkonditionen[skKey].wunschText = input.value.trim();
+                    setSkButton('wkz', idx, false);
+                    setSkStatus('wkz', idx, sonderkonditionen[skKey]);
+                } else {
+                    input.classList.add('input-error');
+                    input.classList.remove('input-sk');
+                    input.dataset.error = "1";
+                    setSkButton('wkz', idx, true);
+                    setSkStatus('wkz', idx, null);
+                }
             } else {
-                input.classList.remove('input-error');
+                input.classList.remove('input-error', 'input-sk');
                 delete input.dataset.error;
+                setSkButton('wkz', idx, false); setSkStatus('wkz', idx, null);
+                if (hasSk) { delete sonderkonditionen[skKey]; renderSonderkonditionen(); }
             }
             updateTotals();
         }
@@ -1189,8 +1457,10 @@
             if (!hasFilledRv) errors.push('Mindestens eine Rebatte-Zeile mit Menge und Vergütung erforderlich');
 
             // v9.3.8: Differenzierte Fehlerprüfung — LIMIT-Verstöße und MIN-Unterschreitungen separat
+            // v9.3.10: Nur AKTIVE Zeilen zählen. Eine ausgeblendete Zeile (nicht .is-active) darf
+            // keinen unsichtbaren Fehler beisteuern, der die PDF-Erstellung blockiert.
             const rvErrors = { limit: 0, min: 0 };
-            document.querySelectorAll('[id^="rv-total-pa-"]').forEach(c => {
+            document.querySelectorAll('.rv-row.is-active [id^="rv-total-pa-"]').forEach(c => {
                 if (c.dataset.error === 'limit') rvErrors.limit++;
                 else if (c.dataset.error === 'min') rvErrors.min++;
             });
@@ -1198,7 +1468,8 @@
             if (rvErrors.min > 0) errors.push(`${rvErrors.min} RV-Position(en) erreichen die Mindestmenge nicht`);
 
             // v9.3.3: Keine LIMIT-Verstöße (WKZ — analog RV)
-            const wkzLimitCount = Array.from(document.querySelectorAll('[id^="wkz-val-"]'))
+            // v9.3.10: ebenfalls nur aktive, nicht gesperrte WKZ-Zeilen zählen.
+            const wkzLimitCount = Array.from(document.querySelectorAll('.wkz-row.is-active:not(.locked) [id^="wkz-val-"]'))
                 .filter(c => c.dataset.error === "1").length;
             if (wkzLimitCount > 0) errors.push(`${wkzLimitCount} WKZ-Position(en) überschreiten das maximale Budget`);
 
@@ -1347,6 +1618,8 @@
             if (distInput && distInput.dataset.savedValue) {
                 state['_distributor_saved'] = distInput.dataset.savedValue;
             }
+            // v9.4.0: Sonderkonditionen mitspeichern (Teil der Vertragsdaten → auch im Hash)
+            state['_sonderkonditionen'] = JSON.parse(JSON.stringify(sonderkonditionen));
             return state;
         }
 
@@ -1366,6 +1639,11 @@
                 state['sig-location'] = state['sig-location-date'];
                 delete state['sig-location-date'];
             }
+
+            // v9.4.0: Sonderkonditionen früh wiederherstellen, damit calcRV/validateWkzVal
+            // beim folgenden Sync den SK-Zustand korrekt erkennen.
+            sonderkonditionen = (state['_sonderkonditionen'] && typeof state['_sonderkonditionen'] === 'object')
+                ? state['_sonderkonditionen'] : {};
 
             document.querySelectorAll('input:not([type="button"]):not([type="file"]), select, textarea').forEach(el => {
                 if (el.id && state[el.id] !== undefined) {
@@ -1394,6 +1672,9 @@
             if (document.getElementById('direct-purchase').checked) toggleDistributor();
             validateDuration();
             syncAllMatrices();
+            // v9.4.0: WKZ-Werte neu prüfen (setzt SK-Status/Buttons) und SK-Sektion rendern
+            wkzItems.forEach((_, i) => validateWkzVal(i));
+            renderSonderkonditionen();
             // v9.3.3: Nach Draft-Reload Höhen der WKZ-Task-Textareas anpassen
             document.querySelectorAll('.wkz-task-area').forEach(autoGrowTextarea);
         }
@@ -1518,6 +1799,17 @@
         async function generatePDF() {
             if (!validateBeforeRender()) return;
 
+            // v9.4.0: Sonderkonditionen-Attestierung — letzte Bestätigung vor dem Druck.
+            const skCount = Object.keys(sonderkonditionen).length;
+            if (skCount > 0) {
+                const ok = confirm(
+                    `Dieser Vertrag enthält ${skCount} Sonderkondition(en), die vom Standard-KPI abweichen.\n\n` +
+                    `Bestätigst du, dass diese vom jeweils genannten Vorgesetzten freigegeben wurden?\n\n` +
+                    `OK = freigegeben, PDF erstellen\nAbbrechen = zurück zum Vertrag`
+                );
+                if (!ok) return;
+            }
+
             const btn = document.querySelector('.print-btn');
             const originalText = btn.innerText;
             btn.innerText = 'Erstelle PDF…';
@@ -1537,7 +1829,7 @@
                     <strong>AUDIT-INFORMATION</strong><br>
                     Erstellt: ${ts.toLocaleString('de-DE')} (${ts.toISOString()})<br>
                     SHA-256 (Inhalt): <span class="hash-value">${hash}</span><br>
-                    Tool: Wein Wolf Kooperationsvereinbarung v9.3.9 · 
+                    Tool: Wein Wolf Kooperationsvereinbarung v9.4.0 · 
                     Gerät: ${navigator.userAgent.substring(0, 90)}…
                 `;
                 document.body.appendChild(footerEl);
@@ -1643,7 +1935,7 @@
                         </td>
                         <td><input type="number" min="0" id="rv-qty-${i}" oninput="calcRV(${i}); scheduleAutosave();" placeholder="${item.s1_qty}">${item.s2_val ? `<div class="progress-bg" id="rv-prog-bg-${i}"><div class="progress-bar" id="rv-prog-${i}"></div></div><div class="progress-text" id="rv-prog-txt-${i}"></div>` : ''}</td>
                         <td><select id="rv-unit-${i}" onchange="updateTotals(); scheduleAutosave();"><option value="1.0" ${item.unit=='1,0l'?'selected':''}>1,0l</option><option value="0.7" ${item.unit=='0,7l'?'selected':''}>0,7l</option></select></td>
-                        <td><input type="text" id="rv-price-${i}" oninput="calcRV(${i}); scheduleAutosave();" inputmode="decimal"></td>
+                        <td><input type="text" id="rv-price-${i}" oninput="calcRV(${i}); scheduleAutosave();" inputmode="decimal"><button type="button" id="rv-sk-btn-${i}" class="sk-btn print-hide" style="display:none;" onclick="openSkModal('RV',${i})">⚠️ Sonderkond. anfragen</button><span id="rv-sk-status-${i}" class="sk-status print-hide" style="display:none;"></span></td>
                         <td id="rv-total-pa-${i}" class="total-cell">${formatEur(0)}</td>
                         <td id="rv-total-dur-${i}" class="projection-cell">${formatEur(0)}</td>
                     </tr>`;
@@ -1665,7 +1957,7 @@
                         <td><textarea id="wkz-task-${i}" class="wkz-task-area" rows="1" oninput="autoGrowTextarea(this); scheduleAutosave()">${item.task}</textarea></td>
                         <td><input type="number" min="0" id="wkz-qty-${i}" oninput="validateWkzQty(${i}); scheduleAutosave();" placeholder="Mind. ${item.minQty} Fl." title="Bitte vereinbarte Jahresmenge eintragen"></td>
                         <td><select id="wkz-billing-${i}" onchange="scheduleAutosave()"><option>Nach Umsetzung</option><option>Bei Abschluss</option></select></td>
-                        <td><input type="text" id="wkz-val-${i}" oninput="validateWkzVal(${i}); scheduleAutosave();" placeholder="${item.val.toFixed(2).replace('.', ',')}" inputmode="decimal" title="Max. ${formatEur(item.val)}"></td>
+                        <td><input type="text" id="wkz-val-${i}" oninput="validateWkzVal(${i}); scheduleAutosave();" placeholder="${item.val.toFixed(2).replace('.', ',')}" inputmode="decimal" title="Max. ${formatEur(item.val)}"><button type="button" id="wkz-sk-btn-${i}" class="sk-btn print-hide" style="display:none;" onclick="openSkModal('WKZ',${i})">⚠️ Sonderkond. anfragen</button><span id="wkz-sk-status-${i}" class="sk-status print-hide" style="display:none;"></span></td>
                     </tr>`;
             });
             wkzBody.innerHTML = wkzRows.join('');
