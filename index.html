@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wein Wolf - Kooperationsvereinbarung v9.4.0 (Pro Edition)</title>
+    <title>Wein Wolf - Kooperationsvereinbarung v9.5.0 (Pro Edition)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -121,6 +121,7 @@
         .action-container { text-align: center; margin-top: 80px; margin-bottom: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
         .util-btn { background: transparent; border: 2px solid var(--ww-border); padding: 10px 20px; color: var(--ww-green-dark); font-family: 'Montserrat', sans-serif; font-size: 10px; text-transform: uppercase; font-weight: 700; cursor: pointer; border-radius: 4px; transition: all 0.3s; letter-spacing: 1px; }
         .reset-all-btn { border-color: var(--ww-error); color: var(--ww-error); }
+        .angebot-btn { background: var(--ww-green-dark); color: #fff; border-color: var(--ww-green-dark); }
 
         .wkz-notice { font-size: 11px; background: rgba(228, 89, 89, 0.1); border-left: 3px solid var(--ww-orange); padding: 8px; margin-top: 5px; display: inline-block; }
 
@@ -143,6 +144,7 @@
             select { appearance: none; -webkit-appearance: none; }
             .rv-row, .wkz-row { display: none; }
             .rv-row.is-active, .wkz-row.is-active { display: table-row !important; }
+            .wkz-row.locked { display: none !important; }
             .missing-alert { display: none !important; } 
             .grid-item:not(:has(input:checked)) { display: none !important; }
         }
@@ -154,6 +156,11 @@
         body.pdf-rendering .action-container,
         body.pdf-rendering .missing-alert,
         body.pdf-rendering .pdf-hidden { display: none !important; }
+        /* v9.5.0: Gesperrte „Potenzial"-WKZ-Zeilen (unvollständige Pakete) gehören nicht auf ein Kundendokument */
+        body.pdf-rendering .wkz-row.locked { display: none !important; }
+        /* v9.5.0: Angebots-Modus — Rechtsteil und Unterschriften erscheinen nicht im Angebots-PDF */
+        body.mode-angebot .legal-block,
+        body.mode-angebot .footer-signatures { display: none !important; }
         body.pdf-rendering input, 
         body.pdf-rendering select, 
         body.pdf-rendering textarea { border: none !important; outline: none !important; background: transparent !important; }
@@ -365,7 +372,7 @@
 </head>
 <body>
 
-    <button type="button" class="print-btn print-hide" onclick="generatePDF()">📄 PDF erstellen</button>
+    <button type="button" class="print-btn print-hide" onclick="generatePDF(false)">📄 Vertrag erstellen</button>
     <div id="autosave-indicator" class="print-hide">💾 Gespeichert</div>
 
     <div id="sig-modal" class="print-hide">
@@ -397,7 +404,7 @@
     <div class="header">
         <div class="logo-area"><img src="https://www.weinwolf.de/bundles/weinwolftheme/storefront/img/logo_header.svg" alt="WEIN WOLF"></div>
         <h1>Kooperationsvereinbarung</h1>
-        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v9.4.0 PRO EDITION</div>
+        <div class="sub-brand">VOLUME SPIRITS | LAUNCH v9.5.0 PRO EDITION</div>
     </div>
 
     <div class="partner-section">
@@ -554,6 +561,7 @@
     </div>
 
     <div class="action-container print-hide">
+        <button type="button" class="util-btn angebot-btn" onclick="generatePDF(true)">📄 Angebot erstellen</button>
         <button type="button" class="util-btn" onclick="exportDraft()">💾 Entwurf speichern</button>
         <button type="button" class="util-btn" onclick="document.getElementById('import-file').click()">📂 Entwurf laden</button>
         <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDraft(event)">
@@ -1411,19 +1419,21 @@
             } catch(e) { return false; }
         }
 
-        function validateBeforeRender() {
+        function validateBeforeRender(isAngebot) {
             const errors = [];
 
-            // Stammdaten
+            // Stammdaten — im Angebot ohne Ort/Unterschriftsdatum (kein Signaturvorgang)
             const requiredFields = [
                 { id: 'ww-employee-name', label: 'Name AD-Mitarbeiter' },
                 { id: 'partner-name',     label: 'Name Partner / Firma' },
                 { id: 'partner-outlets',  label: 'Outlets / Standorte' },
                 { id: 'date-start',       label: 'Startdatum' },
-                { id: 'date-end',         label: 'Enddatum' },
-                { id: 'sig-location',     label: 'Ort' },
-                { id: 'sig-date',         label: 'Unterschriftsdatum' }
+                { id: 'date-end',         label: 'Enddatum' }
             ];
+            if (!isAngebot) {
+                requiredFields.push({ id: 'sig-location', label: 'Ort' });
+                requiredFields.push({ id: 'sig-date',     label: 'Unterschriftsdatum' });
+            }
             requiredFields.forEach(f => {
                 const el = document.getElementById(f.id);
                 if (!el.value.trim()) {
@@ -1437,14 +1447,16 @@
             // Laufzeit muss positiv sein
             if (contractMonths <= 0) errors.push('Laufzeit ungültig (Enddatum ≤ Startdatum)');
 
-            // Bezugsweg
-            const directCheck = document.getElementById('direct-purchase').checked;
-            const distInput = document.getElementById('distributor-name');
-            if (!directCheck && !distInput.value.trim()) {
-                distInput.classList.add('input-error');
-                errors.push('Bezugsweg: Fachgroßhändler eintragen oder „Direktbezug" aktivieren');
-            } else {
-                distInput.classList.remove('input-error');
+            // Bezugsweg — nur im Vertrag relevant
+            if (!isAngebot) {
+                const directCheck = document.getElementById('direct-purchase').checked;
+                const distInput = document.getElementById('distributor-name');
+                if (!directCheck && !distInput.value.trim()) {
+                    distInput.classList.add('input-error');
+                    errors.push('Bezugsweg: Fachgroßhändler eintragen oder „Direktbezug" aktivieren');
+                } else {
+                    distInput.classList.remove('input-error');
+                }
             }
 
             // Mindestens eine RV-Zeile mit Menge UND Vergütung
@@ -1473,12 +1485,15 @@
                 .filter(c => c.dataset.error === "1").length;
             if (wkzLimitCount > 0) errors.push(`${wkzLimitCount} WKZ-Position(en) überschreiten das maximale Budget`);
 
-            // Beide Unterschriften
-            if (!hasSignature(document.getElementById('sig-ww')))    errors.push('Unterschrift Wein Wolf fehlt');
-            if (!hasSignature(document.getElementById('sig-kunde'))) errors.push('Unterschrift Partner fehlt');
+            // Unterschriften — nur im Vertrag Pflicht
+            if (!isAngebot) {
+                if (!hasSignature(document.getElementById('sig-ww')))    errors.push('Unterschrift Wein Wolf fehlt');
+                if (!hasSignature(document.getElementById('sig-kunde'))) errors.push('Unterschrift Partner fehlt');
+            }
 
             if (errors.length > 0) {
-                alert('Vertrag noch nicht unterschriftsreif:\n\n• ' + errors.join('\n• '));
+                const head = isAngebot ? 'Angebot noch nicht vollständig:' : 'Vertrag noch nicht unterschriftsreif:';
+                alert(head + '\n\n• ' + errors.join('\n• '));
                 return false;
             }
             return true;
@@ -1796,24 +1811,28 @@
             return JSON.stringify(snap, Object.keys(snap).sort());
         }
 
-        async function generatePDF() {
-            if (!validateBeforeRender()) return;
+        async function generatePDF(isAngebot) {
+            if (!validateBeforeRender(isAngebot)) return;
 
             // v9.4.0: Sonderkonditionen-Attestierung — letzte Bestätigung vor dem Druck.
             const skCount = Object.keys(sonderkonditionen).length;
             if (skCount > 0) {
                 const ok = confirm(
-                    `Dieser Vertrag enthält ${skCount} Sonderkondition(en), die vom Standard-KPI abweichen.\n\n` +
+                    `Dieses Dokument enthält ${skCount} Sonderkondition(en), die vom Standard-KPI abweichen.\n\n` +
                     `Bestätigst du, dass diese vom jeweils genannten Vorgesetzten freigegeben wurden?\n\n` +
-                    `OK = freigegeben, PDF erstellen\nAbbrechen = zurück zum Vertrag`
+                    `OK = freigegeben, erstellen\nAbbrechen = zurück`
                 );
                 if (!ok) return;
             }
 
-            const btn = document.querySelector('.print-btn');
-            const originalText = btn.innerText;
-            btn.innerText = 'Erstelle PDF…';
-            btn.disabled = true;
+            // v9.5.0: Vertrag → Floating-Button, Angebot → Button in der Aktionsleiste.
+            const btn = document.querySelector(isAngebot ? '.angebot-btn' : '.print-btn');
+            const originalText = btn ? btn.innerText : '';
+            if (btn) { btn.innerText = isAngebot ? 'Erstelle Angebot…' : 'Erstelle PDF…'; btn.disabled = true; }
+
+            // v9.5.0: Titel im Angebots-Modus umbenennen (wird in finally zurückgesetzt)
+            const h1El = document.querySelector('.header h1');
+            const origH1 = h1El ? h1El.innerText : '';
 
             let footerEl = null;
             try {
@@ -1829,19 +1848,24 @@
                     <strong>AUDIT-INFORMATION</strong><br>
                     Erstellt: ${ts.toLocaleString('de-DE')} (${ts.toISOString()})<br>
                     SHA-256 (Inhalt): <span class="hash-value">${hash}</span><br>
-                    Tool: Wein Wolf Kooperationsvereinbarung v9.4.0 · 
+                    Tool: Wein Wolf ${isAngebot ? 'Angebot' : 'Kooperationsvereinbarung'} v9.5.0 · 
                     Gerät: ${navigator.userAgent.substring(0, 90)}…
                 `;
                 document.body.appendChild(footerEl);
 
                 // 3) Render-Modus aktivieren (versteckt UI, blendet leere Grids aus)
+                // v9.5.0: Im Angebots-Modus zusätzlich Legal-Block + Unterschriften ausblenden und Titel umbenennen
+                if (isAngebot) {
+                    document.body.classList.add('mode-angebot');
+                    if (h1El) h1El.innerText = 'Angebot';
+                }
                 prepareForRender();
 
                 // 4) Dateiname
-                const partnerName = (document.getElementById('partner-name').value.trim() || 'Vertrag')
+                const partnerName = (document.getElementById('partner-name').value.trim() || (isAngebot ? 'Angebot' : 'Vertrag'))
                     .replace(/[^a-zA-Z0-9äöüÄÖÜß]/g, '_');
                 const dateStr = ts.toISOString().split('T')[0];
-                const filename = `WW_Kooperation_${partnerName}_${dateStr}.pdf`;
+                const filename = `WW_${isAngebot ? 'Angebot' : 'Kooperation'}_${partnerName}_${dateStr}.pdf`;
 
                 // 5) PDF erzeugen
                 // v9.3.4: windowWidth: 1200 zwingt html2canvas zum Desktop-Layout,
@@ -1877,8 +1901,9 @@
                 try {
                     if (footerEl) footerEl.remove();
                     restoreAfterRender();
-                    btn.innerText = originalText;
-                    btn.disabled = false;
+                    document.body.classList.remove('mode-angebot');
+                    if (h1El) h1El.innerText = origH1;
+                    if (btn) { btn.innerText = originalText; btn.disabled = false; }
                 } catch(cleanupErr) {
                     console.error('Cleanup nach PDF-Fehler ist selbst fehlgeschlagen:', cleanupErr);
                     if (confirm(
@@ -1891,7 +1916,8 @@
                         window.location.reload();
                     } else {
                         // Letzter Versuch: Mindestens Button und Body in funktionsfähigen Zustand bringen
-                        document.body.classList.remove('pdf-rendering');
+                        document.body.classList.remove('pdf-rendering', 'mode-angebot');
+                        if (h1El) h1El.innerText = origH1;
                         if (btn) { btn.innerText = originalText; btn.disabled = false; }
                     }
                 }
